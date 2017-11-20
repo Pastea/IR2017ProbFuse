@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,11 +13,11 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 
 
-		File FILENAMEFUSIONRANKING=new File("/home/riccardo/IdeaProjects/BasicRankFusion/src/FusionRanking.res");
+		File FILENAMEFUSIONRANKING=new File("src/com/latuarisposta/FusionRanking.res");
 
 		ArrayList<String> runs=new ArrayList<>();
-		runs.add("/home/riccardo/IdeaProjects/BasicRankFusion/src/InL2c1.0_0.res");
-		runs.add("/home/riccardo/IdeaProjects/BasicRankFusion/src/BM25b0.4_1.res");
+		runs.add("src/com/latuarisposta/InL2c1.0_0.res");
+		runs.add("src/com/latuarisposta/BM25b0.4_1.res");
 
 		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
 
