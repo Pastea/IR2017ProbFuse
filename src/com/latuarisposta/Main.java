@@ -1,23 +1,29 @@
 package com.latuarisposta;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
+
 	public static void main(String[] args) throws Exception {
 
+		String PATH_COLLECTION="/home/riccardo/ProgettoReperimentoInformazione/collection/";
+
+
+		executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
+		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j");
+		executeCommand("terrier-core-4.2/bin/trec_terrier.sh --printstats;");
+		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
+		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.model=BM25 -c 0.4 -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
 
 		File FILENAMEFUSIONRANKING=new File("src/com/latuarisposta/FusionRanking.res");
 
 		ArrayList<String> runs=new ArrayList<>();
-		runs.add("src/com/latuarisposta/InL2c1.0_0.res");
-		runs.add("src/com/latuarisposta/BM25b0.4_1.res");
+		runs.add("terrier-core-4.2/var/results/InL2c1.0_0.res");
+		runs.add("terrier-core-4.2/var/results/BM25b0.4_1.res");
 
 		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
 
@@ -96,6 +102,25 @@ public class Main {
 
 		}
 		System.out.println("D");
+	}
+
+	private static void executeCommand(String command) {
+
+		//StringBuffer output = new StringBuffer();
+		String s;
+		Process p;
+		try {
+			p = Runtime.getRuntime().exec(command);
+			BufferedReader br = new BufferedReader(
+					new InputStreamReader(p.getInputStream()));
+			while ((s = br.readLine()) != null)
+				System.out.println("line: " + s);
+			p.waitFor();
+			System.out.println ("exit: " + p.exitValue());
+			p.destroy();
+		} catch (Exception e) {e.printStackTrace();}
+		//return output.toString();
+
 	}
 
 	public static class ResultTopic {
