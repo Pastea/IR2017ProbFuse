@@ -102,7 +102,7 @@ public class Main {
 
 		}
 
-		//valutazione
+		//valutazione usando qrels
 		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -e -Dtrec.qrels=terrier-core-4.2/qrels/qrels.trec7.bin");
 	}
 
