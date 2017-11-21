@@ -7,11 +7,12 @@ do
 		echo "uncompress $file"
 		uncompress $file
 	else
-		if [[ $file == *.0Z ]]
+		:'if [[ $file == *.0Z ]]
 		then
 			echo "uncompress $file"
 			s=$(echo ${file##*/}| cut -d '.' -f 1)
 			cat ${file::-3}.* | uncompress > ${file::-3}.txt
-		fi		
+			rm ${file::-3}.*Z
+		fi'		
 	fi		
 done
