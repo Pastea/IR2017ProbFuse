@@ -14,6 +14,11 @@ public class Main {
 
 
 		executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
+
+		for(int i=0;i<10;i++){
+			executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j);");
+		}
+
 		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j");
 		executeCommand("terrier-core-4.2/bin/trec_terrier.sh --printstats;");
 		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
