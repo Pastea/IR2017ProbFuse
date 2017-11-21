@@ -101,7 +101,9 @@ public class Main {
 			Utils.writeToFile(fusionRankingResult,FILENAMEFUSIONRANKING.getPath(),1000);
 
 		}
-		System.out.println("D");
+
+		//valutazione
+		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -e -Dtrec.qrels=terrier-core-4.2/qrels/qrels.trec7.bin");
 	}
 
 	private static void executeCommand(String command) {
