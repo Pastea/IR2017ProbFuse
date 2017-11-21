@@ -10,7 +10,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 
-		String PATH_COLLECTION="/home/riccardo/ProgettoReperimentoInformazione/collection/";
+		String PATH_COLLECTION="linkCollection/";
 
 
 		executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
