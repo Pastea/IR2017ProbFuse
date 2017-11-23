@@ -1,9 +1,6 @@
 package com.latuarisposta;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 
@@ -30,6 +27,29 @@ public class Utils {
 			fw.close();
 		} catch (IOException e) {
 			//exception handling left as an exercise for the reader
+		}
+	}
+
+	/**
+	 * Delete a file or a directory and its children.
+	 * @param file The directory to delete.
+	 * @throws IOException Exception when problem occurs during deleting the directory.
+	 */
+	public static void delete(File file) throws IOException {
+
+		for (File childFile : file.listFiles()) {
+
+			if (childFile.isDirectory()) {
+				delete(childFile);
+			} else {
+				if (!childFile.delete()) {
+					throw new IOException();
+				}
+			}
+		}
+
+		if (!file.delete()) {
+			throw new IOException();
 		}
 	}
 }

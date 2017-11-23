@@ -3,21 +3,32 @@ package com.latuarisposta;
 import java.io.*;
 import java.util.*;
 
+import static com.latuarisposta.Utils.delete;
+
 public class Main {
 
 	public static void main(String[] args) throws Exception {
 
 		String PATH_COLLECTION="linkCollection/";
 
+		//rimuove le cartelle result se ci sono
+		for(int i=0;i<10;i++) {
+			try {
+				delete(new File("terrier-core-4.2-"+i+"/var/results"));
+
+			} catch (Exception e) {
+			}
+		}
 
 		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
+		//il retrival va cambiato in base al modelle ma per ora sta cosi'
+		for(int i=0;i<10;i++) {
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_setup.sh "+PATH_COLLECTION);
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -i -j");
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh --printstats;");
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin");
 
-		//executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
-		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j");
-		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh --printstats;");
-		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
-		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.model=BM25 -c 0.4 -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
-
+		}
 		//tira fuori i risultati
 
 		ArrayList<String> runs=new ArrayList<>();
@@ -28,7 +39,7 @@ public class Main {
 
 			for (File file : files) {
 				if (file.isFile()) {
-					if(file.getName().contains(".res"))
+					if(file.getName().contains(".res")&&!file.getName().contains(".res.settings"))
 					{
 						runs.add(path+"/"+file.getName());
 					}
@@ -36,7 +47,7 @@ public class Main {
 			}
 		}
 
-		File FILENAMEFUSIONRANKING=new File("src/com/latuarisposta/FusionRanking.res");
+		File FILENAMEFUSIONRANKING=new File("terrier-core-4.2-0/var/results/resultFusionRanking.res");
 
 		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
 
@@ -115,8 +126,8 @@ public class Main {
 
 		}
 
-		//valutazione usando qrels
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -e -Dtrec.qrels=terrier-core-4.2/qrels/qrels.trec7.bin");
+		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
+		executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
 	}
 
 	private static void executeCommand(String command) {
