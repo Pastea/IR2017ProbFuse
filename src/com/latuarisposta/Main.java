@@ -1,10 +1,7 @@
 package com.latuarisposta;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Main {
 
@@ -13,17 +10,33 @@ public class Main {
 		String PATH_COLLECTION="linkCollection/";
 
 
-		executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j");
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh --printstats;");
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.model=BM25 -c 0.4 -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
+		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
 
-		File FILENAMEFUSIONRANKING=new File("src/com/latuarisposta/FusionRanking.res");
+		//executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
+		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j");
+		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh --printstats;");
+		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
+		//executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.model=BM25 -c 0.4 -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
+
+		//tira fuori i risultati
 
 		ArrayList<String> runs=new ArrayList<>();
-		runs.add("terrier-core-4.2/var/results/InL2c1.0_0.res");
-		runs.add("terrier-core-4.2/var/results/BM25b0.4_1.res");
+
+		for(int i=0;i<10;i++) {
+			String path="terrier-core-4.2-" + i + "/var/results";
+			File[] files = new File(path).listFiles();
+
+			for (File file : files) {
+				if (file.isFile()) {
+					if(file.getName().contains(".res"))
+					{
+						runs.add(path+"/"+file.getName());
+					}
+				}
+			}
+		}
+
+		File FILENAMEFUSIONRANKING=new File("src/com/latuarisposta/FusionRanking.res");
 
 		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
 
