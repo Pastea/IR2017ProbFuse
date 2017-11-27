@@ -1,10 +1,9 @@
 package com.latuarisposta;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static com.latuarisposta.Utils.delete;
 
 public class Main {
 
@@ -12,23 +11,43 @@ public class Main {
 
 		String PATH_COLLECTION="linkCollection/";
 
+		//rimuove le cartelle result se ci sono
+		for(int i=0;i<10;i++) {
+			try {
+				delete(new File("terrier-core-4.2-"+i+"/var/results"));
 
-		executeCommand("terrier-core-4.2/bin/trec_setup.sh "+PATH_COLLECTION);
-
-		for(int i=0;i<10;i++){
-			executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j);");
+			} catch (Exception e) {
+			}
 		}
 
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -i -j");
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh --printstats;");
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -r -Dtrec.model=BM25 -c 0.4 -Dtrec.topics=terrier-core-4.2/topics/topics.351-400_trec7.bin");
+		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
+		//il retrival va cambiato in base al modelle ma per ora sta cosi'
+		for(int i=0;i<10;i++) {
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_setup.sh "+PATH_COLLECTION);
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -i -j");
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh --printstats;");
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin");
 
-		File FILENAMEFUSIONRANKING=new File("src/com/latuarisposta/FusionRanking.res");
+		}
+		//tira fuori i risultati
 
 		ArrayList<String> runs=new ArrayList<>();
-		runs.add("terrier-core-4.2/var/results/InL2c1.0_0.res");
-		runs.add("terrier-core-4.2/var/results/BM25b0.4_1.res");
+
+		for(int i=0;i<10;i++) {
+			String path="terrier-core-4.2-" + i + "/var/results";
+			File[] files = new File(path).listFiles();
+
+			for (File file : files) {
+				if (file.isFile()) {
+					if(file.getName().contains(".res")&&!file.getName().contains(".res.settings"))
+					{
+						runs.add(path+"/"+file.getName());
+					}
+				}
+			}
+		}
+
+		File FILENAMEFUSIONRANKING=new File("terrier-core-4.2-0/var/results/resultFusionRanking.res");
 
 		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
 
@@ -107,8 +126,8 @@ public class Main {
 
 		}
 
-		//valutazione usando qrels
-		executeCommand("terrier-core-4.2/bin/trec_terrier.sh -e -Dtrec.qrels=terrier-core-4.2/qrels/qrels.trec7.bin");
+		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
+		executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
 	}
 
 	private static void executeCommand(String command) {
