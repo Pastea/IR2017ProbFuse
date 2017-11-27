@@ -7,87 +7,11 @@ import static com.latuarisposta.Utils.delete;
 
 public class Main {
 
+	public static File FILENAMEFUSIONRANKING;
+
 	public static void main(String[] args) throws Exception {
 
-		String PATH_COLLECTION="linkCollection/";
-
-		//rimuove le cartelle result se ci sono
-		for(int i=0;i<10;i++) {
-			try {
-				delete(new File("terrier-core-4.2-"+i+"/var/results"));
-
-			} catch (Exception e) {
-			}
-		}
-
-		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
-		//il retrival va cambiato in base al modelle ma per ora sta cosi'
-		for(int i=0;i<10;i++) {
-			executeCommand("terrier-core-4.2-"+i+"/bin/trec_setup.sh "+PATH_COLLECTION);
-			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -i -j");
-			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh --printstats;");
-			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin");
-
-		}
-		//tira fuori i risultati
-
-		ArrayList<String> runs=new ArrayList<>();
-
-		for(int i=0;i<10;i++) {
-			String path="terrier-core-4.2-" + i + "/var/results";
-			File[] files = new File(path).listFiles();
-
-			for (File file : files) {
-				if (file.isFile()) {
-					if(file.getName().contains(".res")&&!file.getName().contains(".res.settings"))
-					{
-						runs.add(path+"/"+file.getName());
-					}
-				}
-			}
-		}
-
-		File FILENAMEFUSIONRANKING=new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistemi
-
-		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
-
-		//carico in memoria le run
-		for(String FILENAME: runs) {
-
-			try {
-
-				FileReader fr = new FileReader(FILENAME);
-				BufferedReader br = new BufferedReader(fr);
-
-				String sCurrentLine;
-
-				ArrayList<ResultTopic> modelX = new ArrayList<>();
-				result.add(modelX);
-				ResultTopic lastTopic = new ResultTopic();
-
-				while ((sCurrentLine = br.readLine()) != null) {
-					//se gli id dei topic di ora e quello precedente non corrispondono crea un nuovo oggetto
-					//altrimenti l'add va a buon fine e la riga e' aggiunta subito da dentro l'if
-					if (!lastTopic.add(sCurrentLine, lastTopic.getTopicID())) {
-						lastTopic = new ResultTopic();
-						lastTopic.add(sCurrentLine);
-						modelX.add(lastTopic);
-					}
-				}
-
-				for (ResultTopic topic : modelX) {
-					topic.normalize();
-				}
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		try{
-			FILENAMEFUSIONRANKING.delete();
-		}
-		catch(Exception e){ }
+		ArrayList<ArrayList<ResultTopic>> result = gandalfiles_ushallnotpassargument();
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 
@@ -133,6 +57,90 @@ public class Main {
 		executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
 
 
+	}
+
+	public static ArrayList<ArrayList<ResultTopic>> gandalfiles_ushallnotpassargument(){
+		String PATH_COLLECTION="linkCollection/";
+
+		//rimuove le cartelle result se ci sono
+		for(int i=0;i<3;i++) {
+			try {
+				delete(new File("terrier-core-4.2-"+i+"/var/results"));
+
+			} catch (Exception e) {
+			}
+		}
+
+		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
+		//il retrival va cambiato in base al modelle ma per ora sta cosi'
+		for(int i=0;i<3;i++) {
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_setup.sh "+PATH_COLLECTION);
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -i -j");
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh --printstats;");
+			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin");
+
+		}
+		//tira fuori i risultati
+
+		ArrayList<String> runs=new ArrayList<>();
+
+		for(int i=0;i<3;i++) {
+			String path="terrier-core-4.2-" + i + "/var/results";
+			File[] files = new File(path).listFiles();
+
+			for (File file : files) {
+				if (file.isFile()) {
+					if(file.getName().contains(".res")&&!file.getName().contains(".res.settings"))
+					{
+						runs.add(path+"/"+file.getName());
+					}
+				}
+			}
+		}
+
+		FILENAMEFUSIONRANKING=new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistemi
+
+		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
+
+		//carico in memoria le run
+		for(String FILENAME: runs) {
+
+			try {
+
+				FileReader fr = new FileReader(FILENAME);
+				BufferedReader br = new BufferedReader(fr);
+
+				String sCurrentLine;
+
+				ArrayList<ResultTopic> modelX = new ArrayList<>();
+				result.add(modelX);
+				ResultTopic lastTopic = new ResultTopic();
+
+				while ((sCurrentLine = br.readLine()) != null) {
+					//se gli id dei topic di ora e quello precedente non corrispondono crea un nuovo oggetto
+					//altrimenti l'add va a buon fine e la riga e' aggiunta subito da dentro l'if
+					if (!lastTopic.add(sCurrentLine, lastTopic.getTopicID())) {
+						lastTopic = new ResultTopic();
+						lastTopic.add(sCurrentLine);
+						modelX.add(lastTopic);
+					}
+				}
+
+				for (ResultTopic topic : modelX) {
+					topic.normalize();
+				}
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		try{
+			FILENAMEFUSIONRANKING.delete();
+		}
+		catch(Exception e){ }
+
+		return result;
 	}
 
 	private static void executeCommand(String command) {
