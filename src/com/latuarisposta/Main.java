@@ -47,7 +47,7 @@ public class Main {
 			}
 		}
 
-		File FILENAMEFUSIONRANKING=new File("terrier-core-4.2-0/var/results/resultFusionRanking.res");
+		File FILENAMEFUSIONRANKING=new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistemi
 
 		ArrayList<ArrayList<ResultTopic>> result=new ArrayList<>();
 
