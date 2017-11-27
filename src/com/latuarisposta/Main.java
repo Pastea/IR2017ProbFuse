@@ -128,6 +128,8 @@ public class Main {
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
+
+
 	}
 
 	private static void executeCommand(String command) {
