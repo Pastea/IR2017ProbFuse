@@ -89,18 +89,20 @@ public class Main {
 		}
 		catch(Exception e){ }
 
+		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
+
 		for(int i=0;i<50;i++) {
 
-			//per ogni run si costruisce un ahash map <DocID,List>a di risultati>
+			//per ogni run si costruisce una hash map <DocID,List> di risultati
 			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();
 			//ArrayList<String> topicIdList = new ArrayList<>();
-
+			//topicResult è il sistema
 
 			for (ArrayList<ResultTopic> topicResults : result) {
 				//risultati (o linee) cdi quel topic
 				ArrayList<ResultLine> temp = topicResults.get(i).getLines();
 				for (ResultLine line : temp) {
-					if (!docResult.containsKey("" + line.DocName)) {
+					if (!docResult.containsKey("" + line.DocName)) {	//da sistemare
 						docResult.put("" + line.DocName, new ArrayList<ResultLine>());
 					}
 					docResult.get("" + line.DocName).add(line);
@@ -108,6 +110,7 @@ public class Main {
 			}
 
 			//now the fusion ranking
+			//metodi base
 			ArrayList<ResultLine> fusionRankingResult=new ArrayList<>();
 
 			for(Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
