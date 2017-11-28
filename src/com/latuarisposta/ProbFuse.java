@@ -11,7 +11,7 @@ public class ProbFuse {
 
     public static void main(String[] args){
         double t= 0.1;        //percentuale query training set
-        int k=19;           //dimensione segmento
+        int k=5;           //dimensione segmento
         ArrayList<Integer> train_queries = new ArrayList<>();
 
         while(train_queries.size()<t*50){
@@ -44,7 +44,8 @@ public class ProbFuse {
         ArrayList<ArrayList<Float>> Pdkm= new ArrayList<ArrayList<Float>>();
         int n=0;
         int ndoc= frodo.get(0).get(0).getLines().size();
-        for(int s=0; s<3;s++){
+
+        for(int s=0; s<Utils.how_many_models;s++){
             ArrayList<Float> tmp = new ArrayList<Float>();
             for(n=0;n<ndoc/k+1;n++) {
                 float sum_rkq=0f;

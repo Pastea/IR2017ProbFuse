@@ -55,15 +55,13 @@ public class Main {
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
-
-
 	}
 
 	public static ArrayList<ArrayList<ResultTopic>> gandalfiles_ushallnotpassargument(){
 		String PATH_COLLECTION="linkCollection/";
 
 		//rimuove le cartelle result se ci sono
-		for(int i=0;i<3;i++) {
+		for(int i=0;i<Utils.how_many_models;i++) {
 			try {
 				delete(new File("terrier-core-4.2-"+i+"/var/results"));
 
@@ -72,8 +70,8 @@ public class Main {
 		}
 
 		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
-		//il retrival va cambiato in base al modelle ma per ora sta cosi'
-		for(int i=0;i<3;i++) {
+		//il retrival va cambiato in base al modello ma per ora sta cosi'
+		for(int i=0;i<Utils.how_many_models;i++) {
 			executeCommand("terrier-core-4.2-"+i+"/bin/trec_setup.sh "+PATH_COLLECTION);
 			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh -i -j");
 			executeCommand("terrier-core-4.2-"+i+"/bin/trec_terrier.sh --printstats;");
@@ -84,7 +82,7 @@ public class Main {
 
 		ArrayList<String> runs=new ArrayList<>();
 
-		for(int i=0;i<3;i++) {
+		for(int i=0;i<Utils.how_many_models;i++) {
 			String path="terrier-core-4.2-" + i + "/var/results";
 			File[] files = new File(path).listFiles();
 

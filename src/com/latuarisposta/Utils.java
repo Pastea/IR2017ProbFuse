@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 public class Utils {
+
+	public static int how_many_models=3;
+
 	static class CustomComparator implements Comparator<Main.ResultLine> {
 
 		public int compare(Main.ResultLine o1, Main.ResultLine o2) {
