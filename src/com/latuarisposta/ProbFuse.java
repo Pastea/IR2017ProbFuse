@@ -11,7 +11,7 @@ public class ProbFuse {
 
     public static void main(String[] args){
         double t= 0.1;        //percentuale query training set
-        int k=5;           //dimensione segmento
+        int k=19;           //dimensione segmento
         ArrayList<Integer> train_queries = new ArrayList<>();
 
         while(train_queries.size()<t*50){

@@ -54,7 +54,10 @@ public class Main {
 		}
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
-		executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
+		//executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
+
+		//segmentation fault
+		executeCommand("trec_eval/trec_eval qrels/qrels.trec7.txt terrier-core-4.2-0/var/results/resultFusionRanking.res");
 	}
 
 	public static ArrayList<ArrayList<ResultTopic>> gandalfiles_ushallnotpassargument(){
