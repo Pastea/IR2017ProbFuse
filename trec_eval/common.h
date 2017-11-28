@@ -1,9 +1,3 @@
-/* 
-   Copyright (c) 2008 - Chris Buckley. 
-
-   Permission is granted for use and modification of this file for
-   research, non-commercial purposes. 
-*/
 #ifndef COMMONH
 #define COMMONH
 

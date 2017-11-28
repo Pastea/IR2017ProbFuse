@@ -1,9 +1,3 @@
-/* 
-   Copyright (c) 2008 - Chris Buckley. 
-
-   Permission is granted for use and modification of this file for
-   research, non-commercial purposes. 
-*/
 #ifndef SYSFUNCH
 #define SYSFUNCH
 /* Declarations of major functions within standard C libraries */
@@ -24,8 +18,6 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/mman.h>
-
-#include <getopt.h>
 
 /* For time being, define Berkeley constructs in terms of SVR4 constructs*/
 #define bzero(dest,len)      memset(dest,'\0',len)
