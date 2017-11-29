@@ -71,6 +71,14 @@ public class ProbFuse {
             Pdkm.add(tmp);
         }
 
+
+        //t=TOPIC SCELTO
+        for(int topic=350; topic <400;topic++){
+            if ()
+            for(int doc=0; doc<frodo.get(0).get(topic).getLines().size(); doc++) {
+
+            }
+        }
         System.out.println("Il mio tessoro");
     }
 }
