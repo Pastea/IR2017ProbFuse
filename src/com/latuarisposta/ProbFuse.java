@@ -85,7 +85,7 @@ public class ProbFuse {
 
         Main.theyretakingthehobbitstoisengard(frodo,"ProbFuse");
 
-        Main.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.txt terrier-core-4.2-0/var/results/resultFusionRanking.res");
+        Main.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res");
 
         System.out.println("Il mio tessoro");
     }
