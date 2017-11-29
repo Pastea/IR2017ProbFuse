@@ -51,7 +51,7 @@ public class ProbFuse {
                 float sum_rkq=0f;
                 for (int i : train_queries) {
                     float Rkq = 0;
-                    ArrayList<Main.ResultLine> rl = frodo.get(s).get(i-350-1).getLines();
+                    ArrayList<Main.ResultLine> rl = frodo.get(s).get(i-351).getLines();
                     for (int d = n*k; d < (n+1)*k && d < rl.size(); d++) {
                         if (thering.containsKey( i+ "/" + rl.get(d).getDocName())) {
                             if(thering.get(i+ "/" + rl.get(d).getDocName())){
@@ -72,12 +72,23 @@ public class ProbFuse {
         }
 
         //t=TOPIC SCELTO
-        for(int topic=350; topic <400;topic++){
-            if ()
-            for(int doc=0; doc<frodo.get(0).get(topic).getLines().size(); doc++) {
-
+        for(int query=0; query<50;query++){
+            if (!train_queries.contains(query+351)){
+                for(int s=0; s<Utils.how_many_models;s++){
+                    for(int doc=0; doc<frodo.get(s).get(query).getLines().size()-1; doc++) {
+                        Main.ResultLine rl = frodo.get(s).get(query).getLines().get(doc);
+                        rl.setScore(Pdkm.get(s).get(doc/k)/(doc/k+1));
+                    }
+                }
             }
         }
+
+        Main.theyretakingthehobbitstoisengard(frodo,"ProbFuse");
+
+        Main.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.txt terrier-core-4.2-0/var/results/resultFusionRanking.res");
+
         System.out.println("Il mio tessoro");
     }
+
+
 }

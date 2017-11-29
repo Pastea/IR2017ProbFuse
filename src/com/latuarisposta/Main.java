@@ -1,6 +1,7 @@
 package com.latuarisposta;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.latuarisposta.Utils.delete;
@@ -15,48 +16,13 @@ public class Main {
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 
-		for(int i=0;i<50;i++) {
-
-			//per ogni run si costruisce una hash map <DocID,List> di risultati
-			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();
-			//ArrayList<String> topicIdList = new ArrayList<>();
-			//topicResult è il sistema
-
-			for (ArrayList<ResultTopic> topicResults : result) {
-				//risultati (o linee) cdi quel topic
-				ArrayList<ResultLine> temp = topicResults.get(i).getLines();
-				for (ResultLine line : temp) {
-					if (!docResult.containsKey("" + line.DocName)) {	//da sistemare
-						docResult.put("" + line.DocName, new ArrayList<ResultLine>());
-					}
-					docResult.get("" + line.DocName).add(line);
-				}
-			}
-
-			//now the fusion ranking
-			//metodi base
-			ArrayList<ResultLine> fusionRankingResult=new ArrayList<>();
-
-			for(Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
-				ResultLine fusionResult=new ResultLine();
-				double score=BaseRankFusion.CombANZ(entry.getValue());
-				//prende un oggetto a caso per riempire i campi e cambia lo score con quello del fusion ranking
-				fusionResult.set(entry.getValue().get(0),score);
-				fusionRankingResult.add(fusionResult);
-			}
-
-			//ora ordino
-
-			Collections.sort(fusionRankingResult, new Utils.CustomComparator());
-
-			Utils.writeToFile(fusionRankingResult,FILENAMEFUSIONRANKING.getPath(),1000);
-
-		}
+		theyretakingthehobbitstoisengard(result,"CombANZ");
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		//executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
 
 		executeCommand("trec_eval/trec_eval qrels/qrels.trec7.txt terrier-core-4.2-0/var/results/resultFusionRanking.res");
+
 	}
 
 	public static ArrayList<ArrayList<ResultTopic>> gandalfiles_ushallnotpassargument(){
@@ -143,7 +109,57 @@ public class Main {
 		return result;
 	}
 
-	private static void executeCommand(String command) {
+	public static void theyretakingthehobbitstoisengard(ArrayList<ArrayList<ResultTopic>> result, String RankFusion){
+		for(int i=0;i<50;i++) {
+
+			//per ogni run si costruisce una hash map <DocID,List> di risultati
+			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();
+			//ArrayList<String> topicIdList = new ArrayList<>();
+			//topicResult è il sistema
+
+			for (ArrayList<ResultTopic> topicResults : result) {
+				//risultati (o linee) cdi quel topic
+				ArrayList<ResultLine> temp = topicResults.get(i).getLines();
+				for (ResultLine line : temp) {
+					if (!docResult.containsKey("" + line.DocName)) {	//da sistemare
+						docResult.put("" + line.DocName, new ArrayList<ResultLine>());
+					}
+					docResult.get("" + line.DocName).add(line);
+				}
+			}
+
+			//now the fusion ranking
+			//metodi base
+			ArrayList<ResultLine> fusionRankingResult=new ArrayList<>();
+
+			for(Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
+				ResultLine fusionResult=new ResultLine();
+				BaseRankFusion bf = new BaseRankFusion();
+				Method metodo=null;
+				double score=-1;
+				try {
+					metodo = bf.getClass().getMethod(RankFusion,  ArrayList.class);
+				}
+				catch (NoSuchMethodException exc) { }
+
+				if (metodo != null)
+					try {
+						score = (double) metodo.invoke(null, entry.getValue());
+					}
+					catch (Exception ecc) { }
+				//prende un oggetto a caso per riempire i campi e cambia lo score con quello del fusion ranking
+				fusionResult.set(entry.getValue().get(0),score);
+				fusionRankingResult.add(fusionResult);
+			}
+			//ora ordino
+
+			Collections.sort(fusionRankingResult, new Utils.CustomComparator());
+
+			Utils.writeToFile(fusionRankingResult,FILENAMEFUSIONRANKING.getPath(),1000);
+		}
+	}
+
+	public static void executeCommand(String command) {
 
 		//StringBuffer output = new StringBuffer();
 		String s;

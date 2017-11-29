@@ -86,4 +86,15 @@ public class BaseRankFusion {
 
 		return (sum * nonZero);
 	}
+
+	static double ProbFuse(ArrayList<Main.ResultLine> results) {
+		double[] target = toDoubleArray(results);
+
+		double sum = 0;
+		for (int i = 0; i < target.length; i++) {
+			sum = sum + target[i];
+		}
+
+		return sum;
+	}
 }
