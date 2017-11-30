@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ProbFuse {
+public class ProbFuseMain {
 
     public static void main(String[] args){
         double t= 0.1;        //percentuale query training set
@@ -83,7 +83,7 @@ public class ProbFuse {
             }
         }
 
-        Main.theyretakingthehobbitstoisengard(frodo,"ProbFuse");
+        Main.theyretakingthehobbitstoisengard(frodo,new ProbFuse());
 
         Main.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res");
 

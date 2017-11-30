@@ -3,38 +3,34 @@ package com.latuarisposta;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class BaseRankFusion {
+import static com.latuarisposta.Utils.toDoubleArray;
 
-	static double[] toDoubleArray(ArrayList<Main.ResultLine> results) {
-		double[] scoreArray = new double[results.size()];
-		int count = 0;
-		for (Main.ResultLine line : results) {
-			scoreArray[count] = line.getScore();
-			count++;
-		}
-		Arrays.sort(scoreArray);
-		return scoreArray;
-	}
+interface RankFusionIF {
+	public double computeScore(ArrayList<Main.ResultLine> results);
+}
 
-
-	static double CombMAX(ArrayList<Main.ResultLine> results) {
+class CombMAX implements RankFusionIF {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] scoreArray = toDoubleArray(results);
 
 		double max = scoreArray[scoreArray.length - 1];
 		return max;
 	}
+}
 
-
-	static double CombMIN(ArrayList<Main.ResultLine> results) {
+class CombMIN implements RankFusionIF {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] scoreArray = toDoubleArray(results);
 
 		double min = scoreArray[0];
 		return min;
 
 	}
+}
 
+class CombSUM implements RankFusionIF {
 	//the summation of the set of similarity values, or, equivalently, the numerical mean of the set of the set of similarity
-	static double CombSUM(ArrayList<Main.ResultLine> results) {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] target = toDoubleArray(results);
 
 		double sum = 0;
@@ -45,8 +41,11 @@ public class BaseRankFusion {
 		return sum;
 	}
 
+}
+
+class CombMED implements RankFusionIF {
 	//the median similarity value
-	static double CombMED(ArrayList<Main.ResultLine> results) {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] target = toDoubleArray(results);
 		Arrays.sort(target);
 		int middle = target.length / 2;
@@ -56,9 +55,11 @@ public class BaseRankFusion {
 			return target[middle + 1];
 		}
 	}
+}
 
+class CombANZ implements RankFusionIF {
 	//average of the non-zero similarity values
-	static double CombANZ(ArrayList<Main.ResultLine> results) {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] target = toDoubleArray(results);
 
 		double nonZero = 0;
@@ -69,12 +70,15 @@ public class BaseRankFusion {
 		}
 
 		//evita risultati NaN
-		if(nonZero==0) return 0;
+		if (nonZero == 0) return 0;
 		return (sum / nonZero);
 	}
 
+}
+
+class CombMNZ implements RankFusionIF {
 	//average of the non-zero similarity values
-	static double CombMNZ(ArrayList<Main.ResultLine> results) {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] target = toDoubleArray(results);
 
 		double nonZero = 0;
@@ -86,8 +90,10 @@ public class BaseRankFusion {
 
 		return (sum * nonZero);
 	}
+}
 
-	static double ProbFuse(ArrayList<Main.ResultLine> results) {
+class ProbFuse implements RankFusionIF {
+	public double computeScore(ArrayList<Main.ResultLine> results) {
 		double[] target = toDoubleArray(results);
 
 		double sum = 0;

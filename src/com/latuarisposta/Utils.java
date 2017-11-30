@@ -2,6 +2,7 @@ package com.latuarisposta;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 
 public class Utils {
@@ -13,6 +14,17 @@ public class Utils {
 		public int compare(Main.ResultLine o1, Main.ResultLine o2) {
 			return -Double.compare(o1.getScore(), o2.getScore());
 		}
+	}
+
+	static double[] toDoubleArray(ArrayList<Main.ResultLine> results) {
+		double[] scoreArray = new double[results.size()];
+		int count = 0;
+		for (Main.ResultLine line : results) {
+			scoreArray[count] = line.getScore();
+			count++;
+		}
+		Arrays.sort(scoreArray);
+		return scoreArray;
 	}
 
 	public static void writeToFile(ArrayList<Main.ResultLine> toWrite, String path,int howMany) {
