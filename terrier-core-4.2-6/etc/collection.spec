@@ -1,5 +1,4 @@
 #add the files to index
-linkCollection/script.sh
 linkCollection/TREC_VOL5/.DS_Store
 linkCollection/TREC_VOL5/LATIMES/LA010189
 linkCollection/TREC_VOL5/LATIMES/LA010190
@@ -733,4 +732,4 @@ linkCollection/TREC_VOL5/LATIMES/LA123189
 linkCollection/TREC_VOL5/LATIMES/LA123190
 linkCollection/TREC_VOL5/LATIMES/READCHG.TXT
 linkCollection/TREC_VOL5/LATIMES/READMELA.TXT
-linkCollection/.Z
+linkCollection/script.sh
