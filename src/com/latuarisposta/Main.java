@@ -41,6 +41,7 @@ public class Main {
 		//il retrival va cambiato in base al modello ma per ora sta cosi'
 		for (int i = 0; i < Utils.how_many_models; i++) {
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + PATH_COLLECTION);
+			executeCommand("cp Sh_10Sist/terrier.properties." + i + " terrier-core-4.2-"+i+"/etc/terrier.properties");
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -i -j");
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh --printstats;");
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin");
