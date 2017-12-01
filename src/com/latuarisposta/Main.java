@@ -16,7 +16,7 @@ public class Main {
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 
-		theyretakingthehobbitstoisengard(result, new CombANZ());
+		theyretakingthehobbitstoisengard(result, new CombMNZ());
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		//executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");

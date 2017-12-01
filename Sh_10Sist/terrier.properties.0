@@ -16,6 +16,7 @@ querying.allowed.controls=scope,qe,qemodel,start,end,site,scope
 TrecDocTags.doctag=DOC
 TrecDocTags.idtag=DOCNO
 TrecDocTags.skip=DOCHDR
+TrecDocTags.process=TEXT,H3,DOCTITLE,HEADLINE,TTL
 #set to true if the tags can be of various case
 TrecDocTags.casesensitive=false
 
@@ -29,9 +30,5 @@ TrecQueryTags.skip=DESC,NARR
 stopwords.filename=stopword-list.txt
 
 #the processing stages a term goes through
-#CAMBIATO! default Stopwords,PorterStemmer
-termpipelines=Stopwords
-
-#CAMBIATO! default InL2
-trec.model = BM25
+termpipelines=Stopwords,PorterStemmer
 
