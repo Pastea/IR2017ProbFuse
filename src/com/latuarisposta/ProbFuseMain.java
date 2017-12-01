@@ -42,15 +42,15 @@ public class ProbFuseMain {
         }
 
         ArrayList<ArrayList<Float>> Pdkm= new ArrayList<ArrayList<Float>>();
-        int n=0;
         int ndoc= frodo.get(0).get(0).getLines().size();
 
         for(int s=0; s<Utils.how_many_models;s++){
             ArrayList<Float> tmp = new ArrayList<Float>();
-            for(n=0;n<ndoc/k+1;n++) {
+            for(int n=0;n<(ndoc+k-1)/k;n++) {
                 float sum_rkq=0f;
                 for (int i : train_queries) {
                     float Rkq = 0;
+                    System.out.println("Topic:"+(i-351)+"--"+"System:"+s+"--Valore:"+ frodo.get(s).size());
                     ArrayList<Main.ResultLine> rl = frodo.get(s).get(i-351).getLines();
                     for (int d = n*k; d < (n+1)*k && d < rl.size(); d++) {
                         if (thering.containsKey( i+ "/" + rl.get(d).getDocName())) {
@@ -59,8 +59,8 @@ public class ProbFuseMain {
                             }
                         }
                     }
-                    if((n+1)*k>rl.size()){
-                        sum_rkq=sum_rkq + Rkq / (rl.size()-n*k);
+                    if((n+1)*k>ndoc){
+                        sum_rkq=sum_rkq + Rkq / (ndoc-n*k);
                     }
                     else{
                         sum_rkq=sum_rkq + Rkq / k;

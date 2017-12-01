@@ -67,4 +67,22 @@ public class Utils {
 			throw new IOException();
 		}
 	}
+
+	public static ArrayList<Integer> queryCount(String file){
+		ArrayList<Integer> queryNumbers =null;
+		try {
+			FileReader fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			String sCurrentLine;
+			queryNumbers = new ArrayList<Integer>();
+			while((sCurrentLine = br.readLine()) != null) {
+				if(sCurrentLine.contains("<num>")){
+					queryNumbers.add(Integer.parseInt(sCurrentLine.split(":")[1].trim()));
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return queryNumbers;
+	}
 }

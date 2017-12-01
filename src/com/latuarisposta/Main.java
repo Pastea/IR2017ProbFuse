@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.latuarisposta.Utils.delete;
+import static com.latuarisposta.Utils.queryCount;
 
 public class Main {
 
@@ -64,6 +65,8 @@ public class Main {
 			}
 		}
 
+		ArrayList<Integer> queryNumber = queryCount("topics/topics.351-400_trec7.bin");
+
 		FILENAMEFUSIONRANKING = new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistemi
 
 		ArrayList<ArrayList<ResultTopic>> result = new ArrayList<>();
@@ -80,16 +83,15 @@ public class Main {
 
 				ArrayList<ResultTopic> modelX = new ArrayList<>();
 				result.add(modelX);
-				ResultTopic lastTopic = new ResultTopic();
+
+				for(int q : queryNumber){
+					modelX.add(new ResultTopic(q));
+				}
 
 				while ((sCurrentLine = br.readLine()) != null) {
-					//se gli id dei topic di ora e quello precedente non corrispondono crea un nuovo oggetto
-					//altrimenti l'add va a buon fine e la riga e' aggiunta subito da dentro l'if
-					if (!lastTopic.add(sCurrentLine, lastTopic.getTopicID())) {
-						lastTopic = new ResultTopic();
-						lastTopic.add(sCurrentLine);
-						modelX.add(lastTopic);
-					}
+					String[] parsedLine = sCurrentLine.split(" ");
+					int topicId = Integer.parseInt(parsedLine[0]);
+					modelX.get(topicId-351).add(sCurrentLine);
 				}
 
 				for (ResultTopic topic : modelX) {
@@ -135,8 +137,7 @@ public class Main {
 			for (Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
 				ResultLine fusionResult = new ResultLine();
 
-				double score = -1;
-				score = (double) rankFusionAlg.computeScore(entry.getValue());
+				double score = rankFusionAlg.computeScore(entry.getValue());
 
 				//prende un oggetto a caso per riempire i campi e cambia lo score con quello del fusion ranking
 				fusionResult.set(entry.getValue().get(0), score);
@@ -177,31 +178,30 @@ public class Main {
 
 		//il loro settaggio si basa sul fatto che il primo ResultLine avra' lo score piu' alto
 		//e l'ultimo ResultLine avra' lo score piu' basso (sono ordinati)
-		private double maxScore = -1;
-		private double minScore = -1;
+		private double maxScore = 0;
+		private double minScore = 0;
 
 		public ResultTopic() {
 			lines = new ArrayList<>();
 		}
 
-		//ritorna true se la riga appartiene al topic
-		public boolean add(String line, int topicToExpect) {
-			ResultLine currentLine = new ResultLine();
-			int line_topicID = currentLine.set(line);
-			if (line_topicID == topicId) {
-				lines.add(currentLine);
-				minScore = currentLine.getScore();
-				return true;
-			} else
-				return false;
+		public ResultTopic(int Id){
+			lines = new ArrayList<>();
+			topicId=Id;
 		}
 
-		//forza l'aggiunta della riga
+		//aggiune la riga
 		public void add(String line) {
 			ResultLine currentLine = new ResultLine();
 			topicId = currentLine.set(line);
+			if(lines.size()==0){
+				maxScore = currentLine.getScore();
+			}
+			else
+			{
+				minScore=currentLine.getScore();
+			}
 			lines.add(currentLine);
-			maxScore = currentLine.getScore();
 		}
 
 		public int getTopicID() {
