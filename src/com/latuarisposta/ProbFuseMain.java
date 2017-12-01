@@ -10,8 +10,8 @@ import java.util.HashMap;
 public class ProbFuseMain {
 
     public static void main(String[] args){
-        double t= 0.1;        //percentuale query training set
-        int k=19;           //dimensione segmento
+        double t= 0.3;        //percentuale query training set
+        int k=11;           //dimensione segmento, il paper indica 90 come numero di segmenti, 1000/90=11
         ArrayList<Integer> train_queries = new ArrayList<>();
 
         while(train_queries.size()<t*50){

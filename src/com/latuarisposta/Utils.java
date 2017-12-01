@@ -7,7 +7,7 @@ import java.util.Comparator;
 
 public class Utils {
 
-	public static final int how_many_models=3;
+	public static final int how_many_models=10;
 
 	static class CustomComparator implements Comparator<Main.ResultLine> {
 
