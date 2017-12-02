@@ -22,7 +22,7 @@ public class Main {
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		//executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
 
-		executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res");
+		executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res",false);
 
 	}
 
@@ -41,11 +41,11 @@ public class Main {
 		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
 		//il retrival va cambiato in base al modello ma per ora sta cosi'
 		for (int i = 0; i < Utils.how_many_models; i++) {
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + PATH_COLLECTION);
-			executeCommand("cp Sh_10Sist/terrier.properties." + i + " terrier-core-4.2-"+i+"/etc/terrier.properties");
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -i -j");
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh --printstats;");
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin");
+			executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + PATH_COLLECTION,false);
+			executeCommand("cp Sh_10Sist/terrier.properties." + i + " terrier-core-4.2-"+i+"/etc/terrier.properties",false);
+			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -i -j",false);
+			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh --printstats;",false);
+			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin",false);
 
 		}
 		//tira fuori i risultati
@@ -152,24 +152,35 @@ public class Main {
 		}
 	}
 
-	public static void executeCommand(String command) {
+	public static String executeCommand(String command, boolean returnString) {
 
 		//StringBuffer output = new StringBuffer();
-		String s;
+		StringBuilder s=new StringBuilder();
+		String str;
 		Process p;
 		try {
 			p = Runtime.getRuntime().exec(command);
 			BufferedReader br = new BufferedReader(
 					new InputStreamReader(p.getInputStream()));
-			while ((s = br.readLine()) != null)
-				System.out.println("line: " + s);
+			if (returnString)
+			{
+				while ((str = br.readLine()) != null) {
+					s.append(str);
+					System.out.println("line: " + str);
+				}
+			}
+			else
+			{
+				while ((str = br.readLine()) != null)
+					System.out.println("line: " + str);
+			}
 			p.waitFor();
 			System.out.println("exit: " + p.exitValue());
 			p.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		//return output.toString();
+		return s.toString();
 
 	}
 
