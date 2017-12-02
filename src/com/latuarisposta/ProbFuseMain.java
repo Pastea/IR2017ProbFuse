@@ -11,7 +11,7 @@ public class ProbFuseMain {
 
     public static void main(String[] args){
         double t= 0.3;        //percentuale query training set
-        int x=90;           //numero segmenti
+        int x=90;             //numero segmenti
         ArrayList<Integer> train_queries = new ArrayList<>();
 
         while(train_queries.size()<t*50){
@@ -44,9 +44,8 @@ public class ProbFuseMain {
         }
 
         ArrayList<ArrayList<Float>> Pdkm= new ArrayList<ArrayList<Float>>();
-
         for(int s=0; s<Utils.how_many_models;s++){
-            ArrayList<Float> tmp = new ArrayList<Float>();
+            ArrayList<Float> tmp = new ArrayList<Float>();  //probabilità di un sistema
             for(int n=0;n<x;n++) {
                 float sum_rkq=0f;
                 for (int i : train_queries) {
@@ -55,20 +54,22 @@ public class ProbFuseMain {
                     int k = documents.size()/x;         //prendo la parte bassa
                     int docRim = documents.size()-k*x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
                     int size;                           //li ridistribuisco nei primi docRim segmenti
+                    int start;
                     if(n<docRim){
                         size=k+1;
+                        start=n*(k+1);
                     }
                     else {
                         size=k;
+                        start=docRim*(k+1)+(n-docRim)*k;
                     }
-                    for (int d = n * k; d < n*k+size; d++) {
+                    for (int d = start; d < start+size; d++) {
                         if (thering.containsKey(i + "/" + documents.get(d).getDocName())) {
                             if (thering.get(i + "/" + documents.get(d).getDocName())) {
                                 Rkq++;
                             }
                         }
                     }
-                    //System.out.println(c+"---"+size);
                     sum_rkq=sum_rkq + Rkq / size;
                     }
                 tmp.add(sum_rkq / train_queries.size());
@@ -81,14 +82,21 @@ public class ProbFuseMain {
             if (!train_queries.contains(query+351)){
                 for(int s=0; s<Utils.how_many_models;s++){
                     ArrayList<Main.ResultLine> documents = frodo.get(s).get(query).getLines();
-                    for(int doc=0; doc<documents.size()-1; doc++) {
+                    for(int doc=0; doc<documents.size(); doc++) {
                         Main.ResultLine rl = documents.get(doc);
                         int k = documents.size()/x;
                         int docRim = documents.size()-k*x;
-                        if(doc>docRim){
-
+                        int seg;
+                        if(doc-docRim*(k+1)<0){
+                            seg=doc/(k+1);
+                            System.out.println("documento:"+doc+" nel segmento "+seg+" di dimensione " + (k+1) + " avendo un numero di documenti " + documents.size());
                         }
-                        rl.setScore(Pdkm.get(s).get(doc/(documents.size()/x))/(doc/(documents.size()/x)+1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
+                        else{
+                            seg=(doc-docRim*(k+1))/k+docRim;
+                            System.out.println("documento:"+doc+" nel segmento "+seg+" di dimensione " + k + " avendo un numero di documenti " + documents.size());
+                        }
+
+                        rl.setScore(Pdkm.get(s).get(seg)/(seg+1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
                     }
                 }
             }
