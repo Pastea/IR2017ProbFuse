@@ -102,7 +102,7 @@ public class ProbFuseMain {
 			}
 		}
 
-		//elimina topic di training
+		//elimina topic di training e rileva se c'e' stato un cattivo training
 		for (ArrayList<Main.ResultTopic> model : frodo) {
 			for (int i = model.size() - 1; i > 0; i--) {
 				int topicId = model.get(i).getTopicID();
