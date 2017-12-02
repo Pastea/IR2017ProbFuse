@@ -112,7 +112,8 @@ public class Main {
 	}
 
 	public static void theyretakingthehobbitstoisengard(ArrayList<ArrayList<ResultTopic>> result, RankFusionIF rankFusionAlg) {
-		for (int i = 0; i < 50; i++) {
+		int topicToFuse=result.get(0).size();
+		for (int i = 0; i < topicToFuse; i++) {
 
 			//per ogni run si costruisce una hash map <DocID,List> di risultati
 			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();

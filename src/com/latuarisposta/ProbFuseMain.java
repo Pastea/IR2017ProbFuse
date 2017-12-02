@@ -50,7 +50,7 @@ public class ProbFuseMain {
                 float sum_rkq=0f;
                 for (int i : train_queries) {
                     float Rkq = 0;
-                    System.out.println("Topic:"+(i-351)+"--"+"System:"+s+"--Valore:"+ frodo.get(s).size());
+                    //System.out.println("Topic:"+(i-351)+"--"+"System:"+s+"--Valore:"+ frodo.get(s).size());
                     ArrayList<Main.ResultLine> rl = frodo.get(s).get(i-351).getLines();
                     for (int d = n*k; d < (n+1)*k && d < rl.size(); d++) {
                         if (thering.containsKey( i+ "/" + rl.get(d).getDocName())) {
@@ -82,6 +82,19 @@ public class ProbFuseMain {
                 }
             }
         }
+
+        //elimina topic di training
+		for (ArrayList<Main.ResultTopic> model:frodo) {
+			for(int i=model.size()-1;i>0;i--){
+				int topicId=model.get(i).getTopicID();
+				//scansiona la lista dei topic di training
+				for (int j=0;j<train_queries.size();j++)
+				{
+					if(train_queries.get(j).compareTo(topicId)==0)
+						model.remove(i);
+				}
+			}
+		}
 
         Main.theyretakingthehobbitstoisengard(frodo,new ProbFuse());
 
