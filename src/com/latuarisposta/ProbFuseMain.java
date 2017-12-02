@@ -11,7 +11,7 @@ public class ProbFuseMain {
 
     public static void main(String[] args){
         double t= 0.3;        //percentuale query training set
-        int k=11;           //dimensione segmento, il paper indica 90 come numero di segmenti, 1000/90=11
+        int x=90;           //numero segmenti
         ArrayList<Integer> train_queries = new ArrayList<>();
 
         while(train_queries.size()<t*50){
@@ -23,6 +23,8 @@ public class ProbFuseMain {
 
         ArrayList<ArrayList<Main.ResultTopic>> frodo = Main.gandalfiles_ushallnotpassargument(); //sistema --> topic --> lines(documenti)
 
+
+        //serializza la grand truth
         HashMap<String,Boolean> thering = new HashMap<>();
 
         try {
@@ -42,30 +44,33 @@ public class ProbFuseMain {
         }
 
         ArrayList<ArrayList<Float>> Pdkm= new ArrayList<ArrayList<Float>>();
-        int ndoc= frodo.get(0).get(0).getLines().size();
 
         for(int s=0; s<Utils.how_many_models;s++){
             ArrayList<Float> tmp = new ArrayList<Float>();
-            for(int n=0;n<(ndoc+k-1)/k;n++) {
+            for(int n=0;n<x;n++) {
                 float sum_rkq=0f;
                 for (int i : train_queries) {
                     float Rkq = 0;
-                    //System.out.println("Topic:"+(i-351)+"--"+"System:"+s+"--Valore:"+ frodo.get(s).size());
-                    ArrayList<Main.ResultLine> rl = frodo.get(s).get(i-351).getLines();
-                    for (int d = n*k; d < (n+1)*k && d < rl.size(); d++) {
-                        if (thering.containsKey( i+ "/" + rl.get(d).getDocName())) {
-                            if(thering.get(i+ "/" + rl.get(d).getDocName())){
+                    ArrayList<Main.ResultLine> documents = frodo.get(s).get(i-351).getLines();
+                    int k = documents.size()/x;         //prendo la parte bassa
+                    int docRim = documents.size()-k*x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
+                    int size;                           //li ridistribuisco nei primi docRim segmenti
+                    if(n<docRim){
+                        size=k+1;
+                    }
+                    else {
+                        size=k;
+                    }
+                    for (int d = n * k; d < n*k+size; d++) {
+                        if (thering.containsKey(i + "/" + documents.get(d).getDocName())) {
+                            if (thering.get(i + "/" + documents.get(d).getDocName())) {
                                 Rkq++;
                             }
                         }
                     }
-                    if((n+1)*k>ndoc){
-                        sum_rkq=sum_rkq + Rkq / (ndoc-n*k);
+                    //System.out.println(c+"---"+size);
+                    sum_rkq=sum_rkq + Rkq / size;
                     }
-                    else{
-                        sum_rkq=sum_rkq + Rkq / k;
-                    }
-                }
                 tmp.add(sum_rkq / train_queries.size());
             }
             Pdkm.add(tmp);
@@ -75,9 +80,15 @@ public class ProbFuseMain {
         for(int query=0; query<50;query++){
             if (!train_queries.contains(query+351)){
                 for(int s=0; s<Utils.how_many_models;s++){
-                    for(int doc=0; doc<frodo.get(s).get(query).getLines().size()-1; doc++) {
-                        Main.ResultLine rl = frodo.get(s).get(query).getLines().get(doc);
-                        rl.setScore(Pdkm.get(s).get(doc/k)/(doc/k+1));
+                    ArrayList<Main.ResultLine> documents = frodo.get(s).get(query).getLines();
+                    for(int doc=0; doc<documents.size()-1; doc++) {
+                        Main.ResultLine rl = documents.get(doc);
+                        int k = documents.size()/x;
+                        int docRim = documents.size()-k*x;
+                        if(doc>docRim){
+
+                        }
+                        rl.setScore(Pdkm.get(s).get(doc/(documents.size()/x))/(doc/(documents.size()/x)+1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
                     }
                 }
             }
