@@ -19,7 +19,9 @@ public class ProbFuseMain {
 
 		while (train_queries.size() < t * 50) {
 			int tmp = (int) (Math.random() * 50) + 351;
-			if (!train_queries.contains(tmp)) {
+			//evita anche i topic 354, 367, 369,379 perche' tendono a dare pochi risultati e quindi sono poco indicati per essere usati nel training
+			//non becca tutti i casi di training cattivo ma ne diminuisce la comparsa
+			if (!train_queries.contains(tmp)&&tmp!=364&&tmp!=367&&tmp!=369&&tmp!=379) {
 				train_queries.add(tmp);
 			}
 		}
