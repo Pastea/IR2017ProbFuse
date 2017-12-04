@@ -35,7 +35,7 @@ public class Utils {
 			PrintWriter out = new PrintWriter(bw);
 			for (Main.ResultLine line : toWrite) {
 				if(count<howMany)
-					out.println(line.toString());
+					out.println(line.toString(count));
 				count++;
 			}
 			out.flush();

@@ -291,5 +291,9 @@ public class Main {
 		public String toString() {
 			return "" + topicId + " " + boh1 + " " + DocName + " " + position + " " + score + " " + boh2;
 		}
+
+		public String toString(int positionValue) {
+			return "" + topicId + " " + boh1 + " " + DocName + " " + positionValue + " " + score + " " + boh2;
+		}
 	}
 }
