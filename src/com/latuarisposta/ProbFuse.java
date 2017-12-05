@@ -1,32 +1,34 @@
 package com.latuarisposta;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ProbFuseMain {
+public class ProbFuse {
 
-	public static void main(String[] args) {
+	private ArrayList<Integer> train_queries;
+	private String result_trec_eval;
+
+	public ProbFuse() {
 
 		boolean badTraining = false;
 
 		double t = 0.2;        //percentuale query training set
 		int x = 100;             //numero segmenti
-		ArrayList<Integer> train_queries = new ArrayList<>();
+		train_queries = new ArrayList<>();
 
 		while (train_queries.size() < t * 50) {
 			int tmp = (int) (Math.random() * 50) + 351;
 			//evita anche i topic 354, 367, 369,379 perche' tendono a dare pochi risultati e quindi sono poco indicati per essere usati nel training
 			//non becca tutti i casi di training cattivo ma ne diminuisce la comparsa
-			if (!train_queries.contains(tmp)&&tmp!=364&&tmp!=367&&tmp!=369&&tmp!=379) {
+			if (!train_queries.contains(tmp) && tmp != 364 && tmp != 367 && tmp != 369 && tmp != 379) {
 				train_queries.add(tmp);
 			}
 		}
 
-		ArrayList<ArrayList<Main.ResultTopic>> frodo = Main.gandalfiles_ushallnotpassargument(); //sistema --> topic --> lines(documenti)
+		ArrayList<ArrayList<Utils.ResultTopic>> frodo = Utils.gandalfiles_ushallnotpassargument(); //sistema --> topic --> lines(documenti)
 
 		//serializza la grand truth
 		HashMap<String, Boolean> thering = new HashMap<>();
@@ -54,7 +56,7 @@ public class ProbFuseMain {
 				float sum_rkq = 0f;
 				for (int i : train_queries) {
 					float Rkq = 0;
-					ArrayList<Main.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
+					ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
 					int k = documents.size() / x;         //prendo la parte bassa
 					int docRim = documents.size() - k * x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
 					int size;                           //li ridistribuisco nei primi docRim segmenti
@@ -84,9 +86,9 @@ public class ProbFuseMain {
 		for (int query = 0; query < 50; query++) {
 			if (!train_queries.contains(query + 351)) {
 				for (int s = 0; s < Utils.how_many_models; s++) {
-					ArrayList<Main.ResultLine> documents = frodo.get(s).get(query).getLines();
+					ArrayList<Utils.ResultLine> documents = frodo.get(s).get(query).getLines();
 					for (int doc = 0; doc < documents.size(); doc++) {
-						Main.ResultLine rl = documents.get(doc);
+						Utils.ResultLine rl = documents.get(doc);
 						int k = documents.size() / x;
 						int docRim = documents.size() - k * x;
 						int seg;
@@ -105,7 +107,7 @@ public class ProbFuseMain {
 		}
 
 		//elimina topic di training e rileva se c'e' stato un cattivo training
-		for (ArrayList<Main.ResultTopic> model : frodo) {
+		for (ArrayList<Utils.ResultTopic> model : frodo) {
 			for (int i = model.size() - 1; i > 0; i--) {
 				int topicId = model.get(i).getTopicID();
 				//scansiona la lista dei topic di training
@@ -115,14 +117,16 @@ public class ProbFuseMain {
 							badTraining = true;
 						}
 						model.remove(i);
+						//per sicurezza riparte a controllare ogni volta che rimuove qualcosa
+						i = model.size() - 1;
 					}
 				}
 			}
 		}
 
-		Main.theyretakingthehobbitstoisengard(frodo, new ProbFuse());
+		Utils.theyretakingthehobbitstoisengard(frodo, new CombProbFuse());
 
-		String s = Main.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
+		result_trec_eval = Utils.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
 
 		//String map_value = s.split("map")[1].split("gm_ap")[0].split("\t")[2];
 
@@ -130,5 +134,13 @@ public class ProbFuseMain {
 			System.out.println("Cattivo training");
 			System.exit(-123);
 		}
+	}
+
+	public ArrayList<Integer> getTrainQueries() {
+		return train_queries;
+	}
+
+	public String getResult_trec_eval() {
+		return result_trec_eval;
 	}
 }
