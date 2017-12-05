@@ -7,7 +7,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 
-		ProbFuseMainProva probfuse=new ProbFuseMainProva();
+		ProbFuse probfuse=new ProbFuse();
 		BaseFuse basefuse=new BaseFuse(probfuse.getTrainQueries());
 
 		System.out.println("ProbFuse\n"+probfuse.getResult_trec_eval());

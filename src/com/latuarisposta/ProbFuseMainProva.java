@@ -18,7 +18,7 @@ public class ProbFuseMainProva {
         boolean badTraining = false;
 
         double t = 0.2;        //percentuale query training set
-        int x = 100;             //numero segmenti
+        int x = 99;             //numero segmenti
         train_queries = new ArrayList<>();
 
         while (train_queries.size() < t * 50) {
@@ -53,35 +53,28 @@ public class ProbFuseMainProva {
 
         ArrayList<ArrayList<Float>> Pdkm = new ArrayList<ArrayList<Float>>();
         int temp = 0;
-        List<List<List<List<Utils.ResultLine>>>> cont = new LinkedList<>(); //lista di sistemi, ognuno con le 50 query, ognuno con i segmenti,ognuna con le linee del segmento
+        ProbFuseHandler cont = new ProbFuseHandler(); //lista di sistemi, ognuno con le 50 query, ognuno con i segmenti,ognuna con le linee del segmento
         for (int s = 0; s < Utils.how_many_models; s++)//scorro i sistemi
         {
-            cont.add(new LinkedList<>()); //creo un sistema
+            cont.addSystem(); //creo un sistema
             for (int i : train_queries) //scorro le query
             {
-                cont.get(s).add(new LinkedList<>()); //creo una query
+                cont.addQuery(s); //creo una query
                 ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
                 int k = documents.size() / x;         //numero di documenti per segmento, prendo la parte bassa
                 int left = documents.size()-k*x;
                 for (int n = 0; n < x; n++) //scorro i segmenti
                 {
-                    cont
-                            .get(s)
-                            .get(temp)
-                            .add(new LinkedList<>()); //creo un segmento
+                    cont.addSegment(s,temp); //creo un segmento
                     for (int p = n*k; p<(n+1)*k; p++) //smisto i documenti nel loro segmento
                     {
-                        cont
-                                .get(s)
-                                .get(temp)
-                                .get(n)
-                                .add(documents.get(p));
+                        cont.addLine(s,temp,n, documents.get(p)); //aggiungo un risultato
                     }
                 }
                 //Gestisco i documenti lasciati fuori, ne metto uno per segmento
-                for(int n=k*x; n<k*x+left; n++)
+                for(int n=0; n<left; n++)
                 {
-
+                    cont.addLine(s,temp,n,documents.get(n+k*x));
                 }
                 temp++;
             }
