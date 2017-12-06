@@ -18,7 +18,7 @@ public class ProbFuseMainProva {
         boolean badTraining = false;
 
         double t = 0.2;        //percentuale query training set
-        int x = 99;             //numero segmenti
+        int x = 100;             //numero segmenti
         train_queries = new ArrayList<>();
 
         while (train_queries.size() < t * 50) {
@@ -51,22 +51,21 @@ public class ProbFuseMainProva {
             e.printStackTrace();
         }
 
-        ArrayList<ArrayList<Float>> Pdkm = new ArrayList<ArrayList<Float>>();
         int temp = 0;
-        ProbFuseHandler cont = new ProbFuseHandler(); //lista di sistemi, ognuno con le 50 query, ognuno con i segmenti,ognuna con le linee del segmento
-        for (int s = 0; s < Utils.how_many_models; s++)//scorro i sistemi
+        ProbFuseHandler cont = new ProbFuseHandler();   //lista di sistemi, ognuno con le 50 query, ognuno con i segmenti,ognuna con le linee del segmento
+        for (int s = 0; s < Utils.how_many_models; s++) //scorro i sistemi
         {
-            cont.addSystem(); //creo un sistema
-            for (int i : train_queries) //scorro le query
+            cont.addSystem();                           //creo un sistema
+            for (int i=0; i<50; i++)                    //scorro le query
             {
-                cont.addQuery(s); //creo una query
-                ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
-                int k = documents.size() / x;         //numero di documenti per segmento, prendo la parte bassa
+                cont.addQuery(s);                       //creo una query
+                ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i).getLines();
+                int k = documents.size() / x;           //numero di documenti per segmento, prendo la parte bassa
                 int left = documents.size()-k*x;
-                for (int n = 0; n < x; n++) //scorro i segmenti
+                for (int n = 0; n < x; n++)             //scorro i segmenti
                 {
-                    cont.addSegment(s,temp); //creo un segmento
-                    for (int p = n*k; p<(n+1)*k; p++) //smisto i documenti nel loro segmento
+                    cont.addSegment(s,temp);            //creo un segmento
+                    for (int p = n*k; p<(n+1)*k; p++)   //smisto i documenti nel loro segmento
                     {
                         cont.addLine(s,temp,n, documents.get(p)); //aggiungo un risultato
                     }
@@ -81,29 +80,43 @@ public class ProbFuseMainProva {
             temp = 0;
         }
 
-        //t=TOPIC SCELTO
-        for (int query = 0; query < 50; query++) {
-            if (!train_queries.contains(query + 351)) {
-                for (int s = 0; s < Utils.how_many_models; s++) {
-                    ArrayList<Utils.ResultLine> documents = frodo.get(s).get(query).getLines();
-                    for (int doc = 0; doc < documents.size(); doc++) {
-                        Utils.ResultLine rl = documents.get(doc);
-                        int k = documents.size() / x;
-                        int docRim = documents.size() - k * x;
-                        int seg;
-                        if (doc - docRim * (k + 1) < 0) {
-                            seg = doc / (k + 1);
-                            //System.out.println("documento:" + doc + " nel segmento " + seg + " di dimensione " + (k + 1) + " avendo un numero di documenti " + documents.size());
-                        } else {
-                            seg = (doc - docRim * (k + 1)) / k + docRim;
-                            //System.out.println("documento:" + doc + " nel segmento " + seg + " di dimensione " + k + " avendo un numero di documenti " + documents.size());
-                        }
+        List<List<Float>> pdkm = new LinkedList<>();
+        float rkq = 0;
+        float tmp = 0;
 
-                        rl.setScore(Pdkm.get(s).get(seg) / (seg + 1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
+        //per ogni modello fisso un segmento, per ogni query guardo i documenti rilevanti in quel segmento e calcolo P(d_k|m)
+        for (int s = 0; s < Utils.how_many_models; s++) //scorro i modelli
+        {
+            pdkm.add(new LinkedList<>());               //aggiungo un modello
+            for (int n = 0; n < x; n++)                 //scorro i segmenti
+            {
+                for (int i : train_queries)             //scorro le query
+                {
+                    ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
+                    for (Utils.ResultLine l : documents)
+                    {                            //Per ogni documento nel segmento n, vedo se è rilevante o meno
+                        if(cont.getSegment(s,i-351,n).contains(l))
+                            if(thering.containsKey(i + "/" + l.getDocName()))
+                                if (thering.get(i + "/" + l.getDocName()))
+                                    rkq++;
                     }
+                    tmp += rkq / cont.getSegmentSize(s, i-351, n);
+                    rkq = 0;
                 }
+                pdkm.get(s).add(tmp/train_queries.size());
+                tmp = 0;
             }
         }
+
+        List<Float> sd = new LinkedList<>();
+        for (int query = 0; query < 50; query++)
+        {
+            if (!train_queries.contains(query + 351))
+            {
+                //TODO
+            }
+        }
+
 
         //elimina topic di training e rileva se c'e' stato un cattivo training
         for (ArrayList<Utils.ResultTopic> model : frodo) {

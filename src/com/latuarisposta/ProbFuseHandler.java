@@ -70,4 +70,24 @@ public class ProbFuseHandler
     {
         return handler.get(system).get(query).get(segment).size();
     }
+
+    public List<List<List<Utils.ResultLine>>> removeSystem(int system)
+    {
+        return handler.remove(system);
+    }
+
+    public List<List<Utils.ResultLine>> removeQuery(int system, int query)
+    {
+        return handler.get(system).remove(query);
+    }
+
+    public List<Utils.ResultLine> removeSegment(int system, int query, int segment)
+    {
+        return handler.get(system).get(query).remove(segment);
+    }
+
+    public Utils.ResultLine removeLine(int system, int query, int segment, int line)
+    {
+        return handler.get(system).get(query).get(segment).remove(line);
+    }
 }
