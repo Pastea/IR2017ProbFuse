@@ -52,7 +52,7 @@ public class ProbFuseMainProva {
         }
 
         int temp = 0;
-        ProbFuseHandler cont = new ProbFuseHandler();   //lista di sistemi, ognuno con le 50 query, ognuno con i segmenti,ognuna con le linee del segmento
+        ProbFuseHandler cont = new ProbFuseHandler();   //lista di sistemi, ognuno con le 50 query, ognuna con i segmenti,ognuno con le linee del segmento
         for (int s = 0; s < Utils.how_many_models; s++) //scorro i sistemi
         {
             cont.addSystem();                           //creo un sistema
@@ -92,13 +92,12 @@ public class ProbFuseMainProva {
             {
                 for (int i : train_queries)             //scorro le query
                 {
-                    ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
+                    List<Utils.ResultLine> documents = cont.getSegment(s,i,n);
                     for (Utils.ResultLine l : documents)
                     {                            //Per ogni documento nel segmento n, vedo se è rilevante o meno
-                        if(cont.getSegment(s,i-351,n).contains(l))
-                            if(thering.containsKey(i + "/" + l.getDocName()))
-                                if (thering.get(i + "/" + l.getDocName()))
-                                    rkq++;
+                        if(thering.containsKey(i + "/" + l.getDocName()))
+                            if (thering.get(i + "/" + l.getDocName()))
+                                rkq++;
                     }
                     tmp += rkq / cont.getSegmentSize(s, i-351, n);
                     rkq = 0;
@@ -113,7 +112,7 @@ public class ProbFuseMainProva {
         {
             if (!train_queries.contains(query + 351))
             {
-                //TODO
+
             }
         }
 
