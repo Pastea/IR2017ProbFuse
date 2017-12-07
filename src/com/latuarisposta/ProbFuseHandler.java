@@ -58,11 +58,13 @@ public class ProbFuseHandler
 
     public int getSystemSize(int system)
     {
+
         return handler.get(system).size();
     }
 
     public int getQuerySize(int system, int query)
     {
+
         return handler.get(system).get(query).size();
     }
 
@@ -73,11 +75,13 @@ public class ProbFuseHandler
 
     public List<List<List<Utils.ResultLine>>> removeSystem(int system)
     {
+
         return handler.remove(system);
     }
 
     public List<List<Utils.ResultLine>> removeQuery(int system, int query)
     {
+
         return handler.get(system).remove(query);
     }
 
