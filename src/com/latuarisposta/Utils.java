@@ -92,6 +92,55 @@ public class Utils {
 		return result;
 	}
 
+	public static void theyretakingthehobbitstoisengardTheSequel(ProbFuseHandler result, RankFusionIF rankFusionAlg) {
+		int topicsToFuse = result.getSystemSize(0);
+		for (int i = 0; i < topicsToFuse; i++)
+		{
+
+			//per ogni run si costruisce una hash map <DocID,List> di risultati
+			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();
+			//topicResult è il sistema
+
+			for (int k=0; k<Utils.how_many_models; k++)// topicResults : result)
+			{
+				for(int j=0; j<result.getQuerySize(k,i); j++)
+				{
+					//risultati (o linee) cdi quel topic
+					List<ResultLine> temp = result.getSegment(k,i,j);
+					for (ResultLine line : temp) {
+						if (!docResult.containsKey("" + line.DocName))
+						{    //da sistemare
+							docResult.put("" + line.DocName, new ArrayList<ResultLine>());
+						}
+						docResult.get("" + line.DocName).add(line);
+					}
+				}
+			}
+
+			//now the fusion ranking
+			//metodi base
+			ArrayList<ResultLine> fusionRankingResult = new ArrayList<>();
+
+			for (Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
+				ResultLine fusionResult = new ResultLine();
+
+				double score = rankFusionAlg.computeScore(entry.getValue());
+
+				//prende un oggetto a caso per riempire i campi e cambia lo score con quello del fusion ranking
+				fusionResult.set(entry.getValue().get(0), score);
+				fusionRankingResult.add(fusionResult);
+			}
+			//ora ordino
+
+			Collections.sort(fusionRankingResult, new Utils.CustomComparator());
+
+
+			File FILENAMEFUSIONRANKING = new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistem
+
+			Utils.writeToFile(fusionRankingResult, FILENAMEFUSIONRANKING.getPath(), 1000);
+		}
+	}
+
 	public static void theyretakingthehobbitstoisengard(ArrayList<ArrayList<ResultTopic>> result, RankFusionIF rankFusionAlg) {
 		int topicToFuse = result.get(0).size();
 		for (int i = 0; i < topicToFuse; i++) {

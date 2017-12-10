@@ -1,5 +1,6 @@
 package com.latuarisposta;
 
+import javax.rmi.CORBA.Util;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -92,7 +93,7 @@ public class ProbFuseMainProva {
             {
                 for (int i : train_queries)             //scorro le query
                 {
-                    List<Utils.ResultLine> documents = cont.getSegment(s,i,n);
+                    List<Utils.ResultLine> documents = cont.getSegment(s,i-351,n);
                     for (Utils.ResultLine l : documents)
                     {                            //Per ogni documento nel segmento n, vedo se è rilevante o meno
                         if(thering.containsKey(i + "/" + l.getDocName()))
@@ -107,24 +108,42 @@ public class ProbFuseMainProva {
             }
         }
 
-        List<Float> sd = new LinkedList<>();
-        for (int query = 0; query < 50; query++)
+
+        //Setto lo score di un documento pari a pkdm/k per poi sommarli successivamente
+        for (int s = 0; s < Utils.how_many_models; s++)
         {
-            if (!train_queries.contains(query + 351))
+            for (int query = 0; query < 50; query++)
             {
-                //TODO
+                if (!train_queries.contains(query + 351))
+                {
+                    for(int i=0; i<x; i++)
+                    {
+                        for (Utils.ResultLine l: cont.getSegment(s,query,i))
+                        {
+                            l.setScore(pdkm.get(s).get(i)/i);
+                        }
+                    }
+                }
             }
         }
 
-
         //elimina topic di training e rileva se c'e' stato un cattivo training
-        for (ArrayList<Utils.ResultTopic> model : frodo) {
-            for (int i = model.size() - 1; i > 0; i--) {
-                int topicId = model.get(i).getTopicID();
+        List<List<List<Utils.ResultLine>>> model;
+        for (int k=0; k<Utils.how_many_models; k++) //scorro i modelli
+        {
+            model = cont.getSystem(k);
+            for (int i = model.size() - 1; i > 0; i--) //scorro le query
+            {
+                int topicId = i+351;
                 //scansiona la lista dei topic di training
-                for (int j = 0; j < train_queries.size(); j++) {
-                    if (train_queries.get(j).compareTo(topicId) == 0) {
-                        if (model.get(i).getLines().size() < x) {
+                for (int j = 0; j < train_queries.size(); j++)
+                {
+                    if (train_queries.get(j).compareTo(topicId) == 0)
+                    {
+                        int sum = 0;
+                        for(int p = 0; p<x; p++) sum+=cont.getSegmentSize(k,i,p);
+                        if (sum < x)
+                        {
                             badTraining = true;
                         }
                         model.remove(i);
@@ -135,7 +154,7 @@ public class ProbFuseMainProva {
             }
         }
 
-        Utils.theyretakingthehobbitstoisengard(frodo, new CombProbFuse());
+        Utils.theyretakingthehobbitstoisengardTheSequel(cont, new CombProbFuse());
 
         result_trec_eval = Utils.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
 
