@@ -7,7 +7,7 @@ public class Utils {
 
 	public static final int how_many_models = 10;
 
-	public static ArrayList<ArrayList<ResultTopic>> gandalfiles_ushallnotpassargument() {
+	public static ArrayList<ArrayList<ResultTopic>> terrier() {
 		String PATH_COLLECTION = "linkCollection/";
 
 		//rimuove le cartelle result se ci sono
@@ -141,7 +141,7 @@ public class Utils {
 		}
 	}
 
-	public static void theyretakingthehobbitstoisengard(ArrayList<ArrayList<ResultTopic>> result, RankFusionIF rankFusionAlg) {
+	public static void createFinalRank(ArrayList<ArrayList<ResultTopic>> result, RankFusionIF rankFusionAlg) {
 		int topicToFuse = result.get(0).size();
 		for (int i = 0; i < topicToFuse; i++) {
 

@@ -1,6 +1,5 @@
 package com.latuarisposta;
 
-import javax.rmi.CORBA.Util;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,9 +18,8 @@ public class ProbFuseMainProva {
         boolean badTraining = false;
 
         double t = 0.2;        //percentuale query training set
-        int x = 100;             //numero segmenti
+        int x = 17;             //numero segmenti
         train_queries = new ArrayList<>();
-
         while (train_queries.size() < t * 50) {
             int tmp = (int) (Math.random() * 50) + 351;
             //evita anche i topic 354, 367, 369,379 perche' tendono a dare pochi risultati e quindi sono poco indicati per essere usati nel training
@@ -31,10 +29,10 @@ public class ProbFuseMainProva {
             }
         }
 
-        ArrayList<ArrayList<Utils.ResultTopic>> frodo = Utils.gandalfiles_ushallnotpassargument(); //sistema --> topic --> lines(documenti)
+        ArrayList<ArrayList<Utils.ResultTopic>> terrier = Utils.terrier(); //sistema --> topic --> lines(documenti)
 
         //serializza la grand truth
-        HashMap<String, Boolean> thering = new HashMap<>();
+        HashMap<String, Boolean> GT = new HashMap<>();
 
         try {
 
@@ -45,14 +43,13 @@ public class ProbFuseMainProva {
 
             while ((sCurrentLine = br.readLine()) != null) {
                 String[] tmp = sCurrentLine.split(" ");
-                thering.put(tmp[0] + "/" + tmp[2], tmp[3].equals("0") ? false : true); //lo slassssh non è messo a caso ma ha il suo senso, im not joking guys its important, trust me
+                GT.put(tmp[0] + "/" + tmp[2], tmp[3].equals("0") ? false : true); //lo slassssh non è messo a caso ma ha il suo senso, im not joking guys its important, trust me
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        int temp = 0;
         ProbFuseHandler cont = new ProbFuseHandler();   //lista di sistemi, ognuno con le 50 query, ognuna con i segmenti,ognuno con le linee del segmento
         for (int s = 0; s < Utils.how_many_models; s++) //scorro i sistemi
         {
@@ -60,25 +57,27 @@ public class ProbFuseMainProva {
             for (int i=0; i<50; i++)                    //scorro le query
             {
                 cont.addQuery(s);                       //creo una query
-                ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i).getLines();
+                ArrayList<Utils.ResultLine> documents = terrier.get(s).get(i).getLines();
                 int k = documents.size() / x;           //numero di documenti per segmento, prendo la parte bassa
                 int left = documents.size()-k*x;
+                int offset = 0;
                 for (int n = 0; n < x; n++)             //scorro i segmenti
                 {
-                    cont.addSegment(s,temp);            //creo un segmento
-                    for (int p = n*k; p<(n+1)*k; p++)   //smisto i documenti nel loro segmento
+                    cont.addSegment(s,i);            //creo un segmento
+
+                    for (int p = n*k+offset; p<(n+1)*k+offset; p++)   //smisto i documenti nel loro segmento
                     {
-                        cont.addLine(s,temp,n, documents.get(p)); //aggiungo un risultato
+                        cont.addLine(s,i,n, documents.get(p)); //aggiungo un risultato
                     }
+                    if(left>0)
+                    {
+                        cont.addLine(s,i,n,documents.get((n+1)*k+offset));
+                        left--;
+                        offset++;
+                    }
+
                 }
-                //Gestisco i documenti lasciati fuori, ne metto uno per segmento
-                for(int n=0; n<left; n++)
-                {
-                    cont.addLine(s,temp,n,documents.get(n+k*x));
-                }
-                temp++;
             }
-            temp = 0;
         }
 
         List<List<Float>> pdkm = new LinkedList<>();
@@ -96,8 +95,8 @@ public class ProbFuseMainProva {
                     List<Utils.ResultLine> documents = cont.getSegment(s,i-351,n);
                     for (Utils.ResultLine l : documents)
                     {                            //Per ogni documento nel segmento n, vedo se è rilevante o meno
-                        if(thering.containsKey(i + "/" + l.getDocName()))
-                            if (thering.get(i + "/" + l.getDocName()))
+                        if(GT.containsKey(i + "/" + l.getDocName()))
+                            if (GT.get(i + "/" + l.getDocName()))
                                 rkq++;
                     }
                     tmp += rkq / cont.getSegmentSize(s, i-351, n);
@@ -120,7 +119,7 @@ public class ProbFuseMainProva {
                     {
                         for (Utils.ResultLine l: cont.getSegment(s,query,i))
                         {
-                            l.setScore(pdkm.get(s).get(i)/i);
+                            l.setScore(pdkm.get(s).get(i)/(i+1));
                         }
                     }
                 }
@@ -132,25 +131,12 @@ public class ProbFuseMainProva {
         for (int k=0; k<Utils.how_many_models; k++) //scorro i modelli
         {
             model = cont.getSystem(k);
-            for (int i = model.size() - 1; i > 0; i--) //scorro le query
+            for (int i = model.size() - 1; i >= 0; i--) //scorro le query
             {
-                int topicId = i+351;
-                //scansiona la lista dei topic di training
-                for (int j = 0; j < train_queries.size(); j++)
-                {
-                    if (train_queries.get(j).compareTo(topicId) == 0)
-                    {
-                        int sum = 0;
-                        for(int p = 0; p<x; p++) sum+=cont.getSegmentSize(k,i,p);
-                        if (sum < x)
-                        {
-                            badTraining = true;
-                        }
-                        model.remove(i);
-                        //per sicurezza riparte a controllare ogni volta che rimuove qualcosa
-                        i = model.size() - 1;
-                    }
-                }
+               for(int tq : train_queries){
+                   if(tq-351==i)
+                       model.remove(i);
+               }
             }
         }
 

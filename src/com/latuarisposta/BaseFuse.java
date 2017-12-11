@@ -2,20 +2,18 @@ package com.latuarisposta;
 
 import java.util.ArrayList;
 
-import static com.latuarisposta.Utils.executeCommand;
-import static com.latuarisposta.Utils.gandalfiles_ushallnotpassargument;
-import static com.latuarisposta.Utils.theyretakingthehobbitstoisengard;
+import static com.latuarisposta.Utils.*;
 
 public class BaseFuse {
 
 	private String result_trec_eval;
 
 	public BaseFuse() {
-		ArrayList<ArrayList<Utils.ResultTopic>> result = gandalfiles_ushallnotpassargument();
+		ArrayList<ArrayList<Utils.ResultTopic>> result = terrier();
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 
-		theyretakingthehobbitstoisengard(result, new CombMNZ());
+		createFinalRank(result, new CombMNZ());
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		//executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");
@@ -25,7 +23,7 @@ public class BaseFuse {
 	}
 
 	public BaseFuse(ArrayList<Integer> excluded_topics) {
-		ArrayList<ArrayList<Utils.ResultTopic>> result = gandalfiles_ushallnotpassargument();
+		ArrayList<ArrayList<Utils.ResultTopic>> result = terrier();
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 
@@ -44,7 +42,7 @@ public class BaseFuse {
 			}
 		}
 
-		theyretakingthehobbitstoisengard(result, new CombMNZ());
+		createFinalRank(result, new CombMNZ());
 
 		//valutazione usando qrels, di default il fusion ranking e' in terrier-core-4.2-0
 		//executeCommand("terrier-core-4.2-0/bin/trec_terrier.sh -e -Dtrec.qrels=qrels/qrels.trec7.bin");

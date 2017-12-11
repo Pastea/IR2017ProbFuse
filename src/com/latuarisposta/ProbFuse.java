@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class ProbFuse {
@@ -16,7 +17,7 @@ public class ProbFuse {
 		boolean badTraining = false;
 
 		double t = 0.2;        //percentuale query training set
-		int x = 100;             //numero segmenti
+		int x = 17;             //numero segmenti
 		train_queries = new ArrayList<>();
 
 		while (train_queries.size() < t * 50) {
@@ -28,10 +29,10 @@ public class ProbFuse {
 			}
 		}
 
-		ArrayList<ArrayList<Utils.ResultTopic>> frodo = Utils.gandalfiles_ushallnotpassargument(); //sistema --> topic --> lines(documenti)
+		ArrayList<ArrayList<Utils.ResultTopic>> pool = Utils.terrier(); //sistema --> topic --> lines(documenti)
 
 		//serializza la grand truth
-		HashMap<String, Boolean> thering = new HashMap<>();
+		HashMap<String, Boolean> GT = new HashMap<>();
 
 		try {
 
@@ -42,7 +43,7 @@ public class ProbFuse {
 
 			while ((sCurrentLine = br.readLine()) != null) {
 				String[] tmp = sCurrentLine.split(" ");
-				thering.put(tmp[0] + "/" + tmp[2], tmp[3].equals("0") ? false : true); //lo slassssh non è messo a caso ma ha il suo senso, im not joking guys its important, trust me
+				GT.put(tmp[0] + "/" + tmp[2], tmp[3].equals("0") ? false : true); //lo slassssh non è messo a caso ma ha il suo senso, im not joking guys its important, trust me
 			}
 
 		} catch (IOException e) {
@@ -56,10 +57,10 @@ public class ProbFuse {
 				float sum_rkq = 0f;
 				for (int i : train_queries) {
 					float Rkq = 0;
-					ArrayList<Utils.ResultLine> documents = frodo.get(s).get(i - 351).getLines();
-					int k = documents.size() / x;         //prendo la parte bassa
+					ArrayList<Utils.ResultLine> documents = pool.get(s).get(i - 351).getLines();
+					int k = documents.size() / x;         	//prendo la parte bassa
 					int docRim = documents.size() - k * x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
-					int size;                           //li ridistribuisco nei primi docRim segmenti
+					int size;                           	//li ridistribuisco nei primi docRim segmenti
 					int start;
 					if (n < docRim) {
 						size = k + 1;
@@ -69,8 +70,8 @@ public class ProbFuse {
 						start = docRim * (k + 1) + (n - docRim) * k;
 					}
 					for (int d = start; d < start + size; d++) {
-						if (thering.containsKey(i + "/" + documents.get(d).getDocName())) {
-							if (thering.get(i + "/" + documents.get(d).getDocName())) {
+						if (GT.containsKey(i + "/" + documents.get(d).getDocName())) {
+							if (GT.get(i + "/" + documents.get(d).getDocName())) {
 								Rkq++;
 							}
 						}
@@ -86,7 +87,7 @@ public class ProbFuse {
 		for (int query = 0; query < 50; query++) {
 			if (!train_queries.contains(query + 351)) {
 				for (int s = 0; s < Utils.how_many_models; s++) {
-					ArrayList<Utils.ResultLine> documents = frodo.get(s).get(query).getLines();
+					ArrayList<Utils.ResultLine> documents = pool.get(s).get(query).getLines();
 					for (int doc = 0; doc < documents.size(); doc++) {
 						Utils.ResultLine rl = documents.get(doc);
 						int k = documents.size() / x;
@@ -99,7 +100,6 @@ public class ProbFuse {
 							seg = (doc - docRim * (k + 1)) / k + docRim;
 							//System.out.println("documento:" + doc + " nel segmento " + seg + " di dimensione " + k + " avendo un numero di documenti " + documents.size());
 						}
-
 						rl.setScore(Pdkm.get(s).get(seg) / (seg + 1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
 					}
 				}
@@ -107,7 +107,7 @@ public class ProbFuse {
 		}
 
 		//elimina topic di training e rileva se c'e' stato un cattivo training
-		for (ArrayList<Utils.ResultTopic> model : frodo) {
+		for (ArrayList<Utils.ResultTopic> model : pool) {
 			for (int i = model.size() - 1; i > 0; i--) {
 				int topicId = model.get(i).getTopicID();
 				//scansiona la lista dei topic di training
@@ -124,7 +124,7 @@ public class ProbFuse {
 			}
 		}
 
-		Utils.theyretakingthehobbitstoisengard(frodo, new CombProbFuse());
+		Utils.createFinalRank(pool, new CombProbFuse());
 
 		result_trec_eval = Utils.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
 
