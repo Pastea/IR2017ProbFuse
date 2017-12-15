@@ -30,10 +30,9 @@ TrecQueryTags.skip=DESC,NARR
 stopwords.filename=stopword-list.txt
 
 #the processing stages a term goes through
-#CAMBIATO! default Stopwords,PorterStemmer
+#CAMBIATO! default Stopwords,WeakPorterStemmer
 termpipelines=Stopwords
 
 #CAMBIATO! default InL2
-#Poisson estimation for randomness
-trec.model = PL2
+trec.model = DPH
 
