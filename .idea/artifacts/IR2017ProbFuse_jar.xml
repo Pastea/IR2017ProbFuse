@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="IR2017ProbFuse:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/IR2017ProbFuse_jar</output-path>
+    <root id="archive" name="IR2017ProbFuse.jar">
+      <element id="module-output" name="IR2017ProbFuse" />
+    </root>
+  </artifact>
+</component>
