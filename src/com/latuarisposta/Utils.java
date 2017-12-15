@@ -245,6 +245,8 @@ public class Utils {
 				count++;
 			}
 			out.flush();
+			out.close();
+			bw.close();
 			fw.close();
 		} catch (IOException e) {
 			//exception handling left as an exercise for the reader

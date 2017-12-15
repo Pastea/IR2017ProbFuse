@@ -13,12 +13,12 @@ public class ProbFuseMainProva {
     private ArrayList<Integer> train_queries;
     private String result_trec_eval;
 
-    public ProbFuseMainProva() {
+    public ProbFuseMainProva(int nSeg) {
 
         boolean badTraining = false;
 
         double t = 0.2;        //percentuale query training set
-        int x = 17;             //numero segmenti
+        int x = nSeg;             //numero segmenti
         train_queries = new ArrayList<>();
         while (train_queries.size() < t * 50) {
             int tmp = (int) (Math.random() * 50) + 351;
