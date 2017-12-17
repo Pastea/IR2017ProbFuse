@@ -35,7 +35,7 @@ public class Main {
 			outVariance = new PrintWriter(bwVariance);
 
 			//esegue il terieval una sola volta per avere i file .res, poi non serve piu' eseguire ogni singola volta
-			//Utils.executeTerrier();
+			Utils.executeTerrier();
 
 			/*struttura file.csv
 			segmenti		----------------->
