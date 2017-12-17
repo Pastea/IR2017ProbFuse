@@ -11,12 +11,13 @@ public class ProbFuse {
 
 	private ArrayList<Integer> train_queries;
 	private String result_trec_eval;
+	private boolean badTraining=false;
 
-	public ProbFuse(int nSeg) {
+	public ProbFuse(int nSeg,float nTraining) {
 
-		boolean badTraining = false;
+		badTraining = false;
 
-		double t = 0.2;        //percentuale query training set
+		double t = nTraining;        //percentuale query training set
 		int x = nSeg;             //numero segmenti
 		train_queries = new ArrayList<>();
 
@@ -29,7 +30,7 @@ public class ProbFuse {
 			}
 		}
 
-		ArrayList<ArrayList<Utils.ResultTopic>> pool = Utils.terrier(); //sistema --> topic --> lines(documenti)
+		ArrayList<ArrayList<Utils.ResultTopic>> pool = Utils.getTerrierResults(); //sistema --> topic --> lines(documenti)
 
 		//serializza la grand truth
 		HashMap<String, Boolean> GT = new HashMap<>();
@@ -129,11 +130,11 @@ public class ProbFuse {
 		result_trec_eval = Utils.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
 
 		//String map_value = s.split("map")[1].split("gm_ap")[0].split("\t")[2];
+	}
 
-		if (badTraining) {
-			System.out.println("Cattivo training");
-			System.exit(-123);
-		}
+	public boolean isTrainingBad()
+	{
+		return badTraining;
 	}
 
 	public ArrayList<Integer> getTrainQueries() {

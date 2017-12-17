@@ -9,7 +9,7 @@ public class BaseFuse {
 	private String result_trec_eval;
 
 	public BaseFuse() {
-		ArrayList<ArrayList<Utils.ResultTopic>> result = terrier();
+		ArrayList<ArrayList<Utils.ResultTopic>> result = getTerrierResults();
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 
@@ -23,7 +23,7 @@ public class BaseFuse {
 	}
 
 	public BaseFuse(ArrayList<Integer> excluded_topics) {
-		ArrayList<ArrayList<Utils.ResultTopic>> result = terrier();
+		ArrayList<ArrayList<Utils.ResultTopic>> result = getTerrierResults();
 
 		//result contiene alla fine un array dei 10 sistemi e per ogni sistema un array di 50 topic dove all'interno troviamo l'id del topic e un array con gli score di ogni documento
 

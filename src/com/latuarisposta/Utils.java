@@ -7,7 +7,24 @@ public class Utils {
 
 	public static final int how_many_models = 10;
 
-	public static ArrayList<ArrayList<ResultTopic>> terrier() {
+	public static void setupTerrierModels()
+	{
+		for (int i = 0; i < Utils.how_many_models; i++) {
+			String result=executeCommand("ls terrier-core-4.2-" + i,true);
+			//se non trova i file necessari cancella e ricrea
+			if(!result.contains("bin"))
+			{
+				executeCommand("rm -r terrier-core-4.2-" + i,false);
+				executeCommand("cp -r terrier-core-4.2-start terrier-core-4.2-" + i,false);
+			}
+
+		}
+	}
+
+	public static void executeTerrier()
+	{
+		setupTerrierModels();
+
 		String PATH_COLLECTION = "linkCollection/";
 
 		//rimuove le cartelle result se ci sono
@@ -29,6 +46,10 @@ public class Utils {
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin", false);
 
 		}
+	}
+
+	public static ArrayList<ArrayList<ResultTopic>> getTerrierResults() {
+
 		//tira fuori i risultati
 
 		ArrayList<String> runs = new ArrayList<>();

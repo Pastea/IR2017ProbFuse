@@ -29,7 +29,7 @@ public class ProbFuseMainProva {
             }
         }
 
-        ArrayList<ArrayList<Utils.ResultTopic>> terrier = Utils.terrier(); //sistema --> topic --> lines(documenti)
+        ArrayList<ArrayList<Utils.ResultTopic>> terrier = Utils.getTerrierResults(); //sistema --> topic --> lines(documenti)
 
         //serializza la grand truth
         HashMap<String, Boolean> GT = new HashMap<>();

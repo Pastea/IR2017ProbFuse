@@ -30,7 +30,8 @@ TrecQueryTags.skip=DESC,NARR
 stopwords.filename=stopword-list.txt
 
 #the processing stages a term goes through
-termpipelines=Stopwords,StemmerTermPipeline
+termpipelines=Stopwords,EnglishSnowballStemmer
 
 #CAMBIATO! default InL2
-trec.model = DFI0
+trec.model = BM25
+
