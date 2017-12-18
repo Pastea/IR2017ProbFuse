@@ -11,87 +11,86 @@ public class ProbFuseHandler
     {
         handler = new LinkedList<>();
     }
-
-    public int addSystem()
+    public int addModel()
     {
         handler.add(new LinkedList<>());
         return handler.size()-1;
     }
 
-    public int addQuery(int system)
+    public int addQuery(int model)
     {
-        handler.get(system).add(new LinkedList<>());
-        return handler.get(system).size()-1;
+        handler.get(model).add(new LinkedList<>());
+        return handler.get(model).size()-1;
     }
 
-    public int addSegment(int system, int query)
+    public int addSegment(int model, int query)
     {
-        handler.get(system).get(query).add(new LinkedList<>());
-        return handler.get(system).get(query).size()-1;
+        handler.get(model).get(query).add(new LinkedList<>());
+        return handler.get(model).get(query).size()-1;
     }
 
-    public int addLine(int system, int query, int segment, Utils.ResultLine line)
+    public int addLine(int model, int query, int segment, Utils.ResultLine line)
     {
-        handler.get(system).get(query).get(segment).add(line);
-        return handler.get(system).get(query).get(segment).size()-1;
+        handler.get(model).get(query).get(segment).add(line);
+        return handler.get(model).get(query).get(segment).size()-1;
     }
 
-    public List<List<List<Utils.ResultLine>>> getSystem(int system)
+    public List<List<List<Utils.ResultLine>>> getModel(int model)
     {
-        return handler.get(system);
+        return handler.get(model);
     }
 
-    public List<List<Utils.ResultLine>> getQuery(int system, int query)
+    public List<List<Utils.ResultLine>> getQuery(int model, int query)
     {
-        return handler.get(system).get(query);
+        return handler.get(model).get(query);
     }
 
-    public List<Utils.ResultLine> getSegment(int system, int query, int segment)
+    public List<Utils.ResultLine> getSegment(int model, int query, int segment)
     {
-        return handler.get(system).get(query).get(segment);
+        return handler.get(model).get(query).get(segment);
     }
 
-    public Utils.ResultLine getLine(int system, int query, int segment, int line)
+    public Utils.ResultLine getLine(int model, int query, int segment, int line)
     {
-        return handler.get(system).get(query).get(segment).get(line);
+        return handler.get(model).get(query).get(segment).get(line);
     }
 
-    public int getSystemSize(int system)
+    public int getModelSize(int model)
     {
 
-        return handler.get(system).size();
+        return handler.get(model).size();
     }
 
-    public int getQuerySize(int system, int query)
+    public int getQuerySize(int model, int query)
     {
 
-        return handler.get(system).get(query).size();
+        return handler.get(model).get(query).size();
     }
 
-    public int getSegmentSize(int system, int query, int segment)
+    public int getSegmentSize(int model, int query, int segment)
     {
-        return handler.get(system).get(query).get(segment).size();
+        return handler.get(model).get(query).get(segment).size();
     }
 
-    public List<List<List<Utils.ResultLine>>> removeSystem(int system)
+    public List<List<List<Utils.ResultLine>>> removeModel(int model)
     {
 
-        return handler.remove(system);
+        return handler.remove(model);
     }
 
-    public List<List<Utils.ResultLine>> removeQuery(int system, int query)
+    public List<List<Utils.ResultLine>> removeQuery(int model, int query)
     {
 
-        return handler.get(system).remove(query);
+        return handler.get(model).remove(query);
     }
 
-    public List<Utils.ResultLine> removeSegment(int system, int query, int segment)
+    public List<Utils.ResultLine> removeSegment(int model, int query, int segment)
     {
-        return handler.get(system).get(query).remove(segment);
+        return handler.get(model).get(query).remove(segment);
     }
 
-    public Utils.ResultLine removeLine(int system, int query, int segment, int line)
+    public Utils.ResultLine removeLine(int model, int query, int segment, int line)
     {
-        return handler.get(system).get(query).get(segment).remove(line);
+        return handler.get(model).get(query).get(segment).remove(line);
     }
 }

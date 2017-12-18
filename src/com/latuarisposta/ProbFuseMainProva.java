@@ -12,12 +12,12 @@ public class ProbFuseMainProva {
 
     private ArrayList<Integer> train_queries;
     private String result_trec_eval;
+    boolean badTraining = false;
 
-    public ProbFuseMainProva(int nSeg) {
 
-        boolean badTraining = false;
+    public ProbFuseMainProva(int nSeg, float nTraining) {
 
-        double t = 0.2;        //percentuale query training set
+        double t = nTraining;        //percentuale query training set
         int x = nSeg;             //numero segmenti
         train_queries = new ArrayList<>();
         while (train_queries.size() < t * 50) {
@@ -53,7 +53,7 @@ public class ProbFuseMainProva {
         ProbFuseHandler cont = new ProbFuseHandler();   //lista di sistemi, ognuno con le 50 query, ognuna con i segmenti,ognuno con le linee del segmento
         for (int s = 0; s < Utils.how_many_models; s++) //scorro i sistemi
         {
-            cont.addSystem();                           //creo un sistema
+            cont.addModel();                           //creo un sistema
             for (int i=0; i<50; i++)                    //scorro le query
             {
                 cont.addQuery(s);                       //creo una query
@@ -69,6 +69,13 @@ public class ProbFuseMainProva {
                     {
                         cont.addLine(s,i,n, documents.get(p)); //aggiungo un risultato
                     }
+
+                    if(train_queries.contains(i+351) && cont.getSegmentSize(s,i,n) == 0)
+                    {
+                        badTraining = true;
+                        return;
+                    }
+
                     if(left>0)
                     {
                         cont.addLine(s,i,n,documents.get((n+1)*k+offset));
@@ -130,10 +137,11 @@ public class ProbFuseMainProva {
         List<List<List<Utils.ResultLine>>> model;
         for (int k=0; k<Utils.how_many_models; k++) //scorro i modelli
         {
-            model = cont.getSystem(k);
+            model = cont.getModel(k);
             for (int i = model.size() - 1; i >= 0; i--) //scorro le query
             {
-               for(int tq : train_queries){
+               for(int tq : train_queries)
+               {
                    if(tq-351==i)
                        model.remove(i);
                }
@@ -145,11 +153,11 @@ public class ProbFuseMainProva {
         result_trec_eval = Utils.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
 
         //String map_value = s.split("map")[1].split("gm_ap")[0].split("\t")[2];
+    }
 
-        if (badTraining) {
-            System.out.println("Cattivo training");
-            System.exit(-123);
-        }
+    public boolean isTrainingBad()
+    {
+        return badTraining;
     }
 
     public ArrayList<Integer> getTrainQueries() {

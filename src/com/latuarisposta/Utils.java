@@ -114,7 +114,7 @@ public class Utils {
 	}
 
 	public static void theyretakingthehobbitstoisengardTheSequel(ProbFuseHandler result, RankFusionIF rankFusionAlg) {
-		int topicsToFuse = result.getSystemSize(0);
+		int topicsToFuse = result.getModelSize(0);
 		for (int i = 0; i < topicsToFuse; i++)
 		{
 
