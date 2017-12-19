@@ -6,6 +6,7 @@ import java.util.*;
 public class Utils {
 
 	public static final int how_many_models = 10;
+	public static ArrayList<Integer> queryNumber;
 
 	public static void setupTerrierModels()
 	{
@@ -19,6 +20,7 @@ public class Utils {
 			}
 
 		}
+
 	}
 
 	public static void executeTerrier()
@@ -46,6 +48,10 @@ public class Utils {
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin", false);
 
 		}
+
+		//imposta la variabile delle queries
+		queryNumber= queryCount("topics/topics.351-400_trec7.bin");
+
 	}
 
 	public static ArrayList<ArrayList<ResultTopic>> getTerrierResults() {
@@ -66,8 +72,6 @@ public class Utils {
 				}
 			}
 		}
-
-		ArrayList<Integer> queryNumber = queryCount("topics/topics.351-400_trec7.bin");
 
 		File FILENAMEFUSIONRANKING = new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistemi
 

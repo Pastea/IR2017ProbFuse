@@ -1,5 +1,5 @@
 #add the files to index
-linkCollection/TREC_VOL4/.directory
+linkCollection/TREC_VOL4/.DS_Store
 linkCollection/TREC_VOL4/FR94/01/FR9401040
 linkCollection/TREC_VOL4/FR94/01/FR9401041
 linkCollection/TREC_VOL4/FR94/01/FR9401042
@@ -480,7 +480,6 @@ linkCollection/TREC_VOL4/FR94/12/FR9412272
 linkCollection/TREC_VOL4/FR94/12/FR9412300
 linkCollection/TREC_VOL4/FR94/12/FR9412301
 linkCollection/TREC_VOL4/FR94/12/FR9412302
-linkCollection/TREC_VOL4/FT/.directory
 linkCollection/TREC_VOL4/FT/FT911/FT911_1
 linkCollection/TREC_VOL4/FT/FT911/FT911_10
 linkCollection/TREC_VOL4/FT/FT911/FT911_11
@@ -1074,7 +1073,7 @@ linkCollection/TREC_VOL4/FT/FT944/FT944_6
 linkCollection/TREC_VOL4/FT/FT944/FT944_7
 linkCollection/TREC_VOL4/FT/FT944/FT944_8
 linkCollection/TREC_VOL4/FT/FT944/FT944_9
-linkCollection/TREC_VOL5/.directory
+linkCollection/TREC_VOL5/.DS_Store
 linkCollection/TREC_VOL5/FBIS/FB396001
 linkCollection/TREC_VOL5/FBIS/FB396002
 linkCollection/TREC_VOL5/FBIS/FB396003
@@ -2297,3 +2296,4 @@ linkCollection/TREC_VOL5/LATIMES/LA123089
 linkCollection/TREC_VOL5/LATIMES/LA123090
 linkCollection/TREC_VOL5/LATIMES/LA123189
 linkCollection/TREC_VOL5/LATIMES/LA123190
+linkCollection/script.sh
