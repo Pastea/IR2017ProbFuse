@@ -77,6 +77,10 @@ public class Main {
 				outMeanComb.print(currentSegm+";");
 				outVarianceComb.print(currentSegm+";");
 			}
+			outMeanProb.print("\n");
+			outVarianceProb.print("\n");
+			outMeanComb.print("\n");
+			outVarianceComb.print("\n");
 			for(float currentPercTraining=0.1f;currentPercTraining<maxPercTraining;currentPercTraining=currentPercTraining+0.1f) {
 				outMeanProb.print(currentPercTraining + ";");
 				outVarianceProb.print(currentPercTraining + ";");
