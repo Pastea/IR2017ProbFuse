@@ -60,7 +60,7 @@ public class Utils {
 
 			for (File file : files) {
 				if (file.isFile()) {
-					if (file.getName().contains(".res") && !file.getName().contains(".res.settings")) {
+					if (file.getName().contains(".res") && !file.getName().contains(".res.settings")&&!file.getName().contains("Fusion")) {
 						runs.add(path + "/" + file.getName());
 					}
 				}
@@ -109,7 +109,6 @@ public class Utils {
 			FILENAMEFUSIONRANKING.delete();
 		} catch (Exception e) {
 		}
-
 		return result;
 	}
 

@@ -15,24 +15,42 @@ public class Main {
 		float maxPercTraining=0.6f;
 		int step = 20;
 		int numExp = 20;
-		FileWriter fwMean = null;
-		BufferedWriter bwMean = null;
-		PrintWriter outMean = null;
+		FileWriter fwMeanProb = null;
+		BufferedWriter bwMeanProb = null;
+		PrintWriter outMeanProb = null;
 
-		FileWriter fwVariance = null;
-		BufferedWriter bwVariance = null;
-		PrintWriter outVariance = null;
+		FileWriter fwVarianceProb = null;
+		BufferedWriter bwVarianceProb = null;
+		PrintWriter outVarianceProb = null;
+
+		FileWriter fwMeanComb = null;
+		BufferedWriter bwMeanComb = null;
+		PrintWriter outMeanComb = null;
+
+		FileWriter fwVarianceComb = null;
+		BufferedWriter bwVarianceComb = null;
+		PrintWriter outVarianceComb = null;
 		try
 		{
-			Utils.executeCommand("rm resultsMean.csv",false);
-			fwMean = new FileWriter("resultsMean.csv", false);
-			bwMean = new BufferedWriter(fwMean);
-			outMean = new PrintWriter(bwMean);
+			Utils.executeCommand("rm resultsMeanProb.csv",false);
+			fwMeanProb = new FileWriter("resultsMeanProb.csv", false);
+			bwMeanProb = new BufferedWriter(fwMeanProb);
+			outMeanProb = new PrintWriter(bwMeanProb);
 
-			Utils.executeCommand("rm resultsVariance.csv",false);
-			fwVariance = new FileWriter("resultsVariance.csv", false);
-			bwVariance = new BufferedWriter(fwVariance);
-			outVariance = new PrintWriter(bwVariance);
+			Utils.executeCommand("rm resultsVarianceProb.csv",false);
+			fwVarianceProb = new FileWriter("resultsVarianceProb.csv", false);
+			bwVarianceProb = new BufferedWriter(fwVarianceProb);
+			outVarianceProb = new PrintWriter(bwVarianceProb);
+
+			Utils.executeCommand("rm resultsMeanComb.csv",false);
+			fwMeanComb = new FileWriter("resultsMeanComb.csv", false);
+			bwMeanComb = new BufferedWriter(fwMeanComb);
+			outMeanComb = new PrintWriter(bwMeanComb);
+
+			Utils.executeCommand("rm resultsVarianceComb.csv",false);
+			fwVarianceComb = new FileWriter("resultsVarianceComb.csv", false);
+			bwVarianceComb = new BufferedWriter(fwVarianceComb);
+			outVarianceComb = new PrintWriter(bwVarianceComb);
 
 			//esegue il terieval una sola volta per avere i file .res, poi non serve piu' eseguire ogni singola volta
 			Utils.executeTerrier();
@@ -44,55 +62,80 @@ public class Main {
 				|
 				|
 			*/
-			outMean.println("#segmenti");
-			outVariance.println("#segmenti");
-			outMean.print(";");
-			outVariance.print(";");
+			outMeanProb.println("#segmenti");
+			outVarianceProb.println("#segmenti");
+			outMeanComb.println("#segmenti");
+			outVarianceComb.println("#segmenti");
+
+			outMeanProb.print(";");
+			outVarianceProb.print(";");
+			outMeanComb.print(";");
+			outVarianceComb.print(";");
 			for (int currentSegm = 1; currentSegm < maxSegm; currentSegm = currentSegm + step) {
-				outMean.print(currentSegm+";");
-				outVariance.print(currentSegm+";");
+				outMeanProb.print(currentSegm+";");
+				outVarianceProb.print(currentSegm+";");
+				outMeanComb.print(currentSegm+";");
+				outVarianceComb.print(currentSegm+";");
 			}
 			for(float currentPercTraining=0.1f;currentPercTraining<maxPercTraining;currentPercTraining=currentPercTraining+0.1f) {
-				outMean.print(currentPercTraining+";");
-				outVariance.print(currentPercTraining+";");
+				outMeanProb.print(currentPercTraining + ";");
+				outVarianceProb.print(currentPercTraining + ";");
+				outMeanComb.print(currentPercTraining + ";");
+				outVarianceComb.print(currentPercTraining + ";");
 
 				for (int currentSegm = 1; currentSegm < maxSegm; currentSegm = currentSegm + step) {
-					float somma = 0;
-					LinkedList<Double> mapValues=new LinkedList<>();
+					float sommaProb = 0;
+					LinkedList<Double> mapValuesProb = new LinkedList<>();
+
+					float sommaComb = 0;
+					LinkedList<Double> mapValuesComb = new LinkedList<>();
+
 					for (int i = 0; i < numExp; i++) {
-						ProbFuse probfuse = new ProbFuse(currentSegm,currentPercTraining);
-						while(probfuse.isTrainingBad())
-						{
-							probfuse = new ProbFuse(currentSegm,currentPercTraining);
-							System.out.println("BAD TRAINING");
+						ProbFuse probfuse = new ProbFuse(currentSegm, currentPercTraining);
+						while (probfuse.isTrainingBad()) {
+							System.out.println("BAD TRAINING on topic "+probfuse.getBadTrainingTopic()+" and model "+probfuse.getBadTrainingModel());
+							probfuse = new ProbFuse(currentSegm, currentPercTraining);
 						}
 
-						//BaseFuse basefuse=new BaseFuse(probfuse.getTrainQueries());
+						BaseFuse basefuse = new BaseFuse(probfuse.getTrainQueries());
 
-						//System.out.println("ProbFuse\n" + probfuse.getResult_trec_eval());
-						//System.out.println("baseFuse\n"+basefuse.getResult_trec_eval());
+						float map_probFuse = Float.parseFloat(probfuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
+						float map_combFuse = Float.parseFloat(basefuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
 
-						float map_probfuse = Float.parseFloat(probfuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
-						somma += map_probfuse;
-						mapValues.add(Double.valueOf(map_probfuse));
+						sommaProb += map_probFuse;
+						sommaComb += map_combFuse;
+
+						mapValuesProb.add(Double.valueOf(map_probFuse));
+						mapValuesComb.add(Double.valueOf(map_combFuse));
 						//float map_basefuse =Float.parseFloat(basefuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
 						//System.out.println("Map\nProb: " + map_probfuse);//+"\t Base:"+map_basefuse);
 					}
-					float mean=somma / numExp;
+					float meanProb = sommaProb / numExp;
+					float meanComb = sommaComb / numExp;
 
-					float variance=0;
-					for (Double value:mapValues) {
-						variance=variance+(float)Math.pow(value-mean,2);
+					float varianceProb = 0;
+					float varianceComb = 0;
+					for (Double value : mapValuesProb) {
+						varianceProb = varianceProb + (float) Math.pow(value - meanProb, 2);
+						varianceComb = varianceComb + (float) Math.pow(value - meanComb, 2);
 					}
-					variance=variance/numExp;
+					varianceProb = varianceProb / numExp;
+					varianceComb = varianceComb / numExp;
 
-					outMean.print(mean+";");
-					outVariance.print(variance+";");
-					outMean.flush();
-					outVariance.flush();
+					outMeanProb.print(meanProb + ";");
+					outVarianceProb.print(varianceProb + ";");
+					outMeanProb.flush();
+					outVarianceProb.flush();
+
+					outMeanComb.print(meanComb + ";");
+					outVarianceComb.print(varianceComb + ";");
+					outMeanComb.flush();
+					outVarianceComb.flush();
 				}
-				outMean.print("\n");
-				outVariance.print("\n");
+				outMeanProb.print("\n");
+				outVarianceProb.print("\n");
+				outMeanComb.print("\n");
+				outVarianceComb.print("\n");
 			}
 		}
 		catch(IOException ioe)
@@ -101,13 +144,21 @@ public class Main {
 		}
 		finally
 		{
-			outMean.close();
-			bwMean.close();
-			fwMean.close();
+			outMeanProb.close();
+			bwMeanProb.close();
+			fwMeanProb.close();
 
-			outVariance.close();
-			bwVariance.close();
-			fwVariance.close();
+			outVarianceProb.close();
+			bwVarianceProb.close();
+			fwVarianceProb.close();
+
+			outMeanComb.close();
+			bwMeanComb.close();
+			fwMeanComb.close();
+
+			outVarianceComb.close();
+			bwVarianceComb.close();
+			fwVarianceComb.close();
 		}
 	}
 }

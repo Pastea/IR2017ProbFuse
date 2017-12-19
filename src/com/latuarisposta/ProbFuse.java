@@ -12,10 +12,14 @@ public class ProbFuse {
 	private ArrayList<Integer> train_queries;
 	private String result_trec_eval;
 	private boolean badTraining=false;
+	private int badTopic=-1;
+	private int badModel=-1;
 
 	public ProbFuse(int nSeg,float nTraining) {
 
 		badTraining = false;
+		badTopic=-1;
+		badModel=-1;
 
 		double t = nTraining;        //percentuale query training set
 		int x = nSeg;             //numero segmenti
@@ -108,7 +112,9 @@ public class ProbFuse {
 		}
 
 		//elimina topic di training e rileva se c'e' stato un cattivo training
+		int currentModel=0;
 		for (ArrayList<Utils.ResultTopic> model : pool) {
+			currentModel++;
 			for (int i = model.size() - 1; i > 0; i--) {
 				int topicId = model.get(i).getTopicID();
 				//scansiona la lista dei topic di training
@@ -116,6 +122,8 @@ public class ProbFuse {
 					if (train_queries.get(j).compareTo(topicId) == 0) {
 						if (model.get(i).getLines().size() < x) {
 							badTraining = true;
+							badTopic=topicId;
+							badModel=currentModel;
 						}
 						model.remove(i);
 						//per sicurezza riparte a controllare ogni volta che rimuove qualcosa
@@ -128,14 +136,16 @@ public class ProbFuse {
 		Utils.createFinalRank(pool, new CombProbFuse());
 
 		result_trec_eval = Utils.executeCommand("trec_eval/trec_eval qrels/qrels.trec7.bin terrier-core-4.2-0/var/results/resultFusionRanking.res", true);
-
-		//String map_value = s.split("map")[1].split("gm_ap")[0].split("\t")[2];
 	}
 
 	public boolean isTrainingBad()
 	{
 		return badTraining;
 	}
+
+	public int getBadTrainingTopic(){return badTopic;}
+
+	public int getBadTrainingModel(){return badModel;}
 
 	public ArrayList<Integer> getTrainQueries() {
 		return train_queries;
