@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class ProbFuse {
@@ -25,8 +24,8 @@ public class ProbFuse {
 		int x = nSeg;             //numero segmenti
 		train_queries = new ArrayList<>();
 
-		while (train_queries.size() < t * 50) {
-			int tmp = (int) (Math.random() * 50) + 351;
+		while (train_queries.size() < t * Utils.queryNumber.size()) {
+			int tmp = Utils.queryNumber.get((int) (Math.random() * Utils.queryNumber.size()));
 			//evita anche i topic 354, 367, 369,379 perche' tendono a dare pochi risultati e quindi sono poco indicati per essere usati nel training
 			//non becca tutti i casi di training cattivo ma ne diminuisce la comparsa
 			if (!train_queries.contains(tmp) && tmp != 364 && tmp != 367 && tmp != 369 && tmp != 379) {
@@ -55,13 +54,17 @@ public class ProbFuse {
 			e.printStackTrace();
 		}
 
-		ArrayList<ArrayList<Float>> Pdkm = new ArrayList<ArrayList<Float>>();
+		ArrayList<ArrayList<Float>> ProbFuseAll = new ArrayList<ArrayList<Float>>();
+		ArrayList<ArrayList<Float>> ProbFuseJudged = new ArrayList<ArrayList<Float>>();
 		for (int s = 0; s < Utils.how_many_models; s++) {
-			ArrayList<Float> tmp = new ArrayList<Float>();  //probabilità di un sistema
+			ArrayList<Float> PFA_tmp = new ArrayList<Float>();  //probabilità di un sistema
+			ArrayList<Float> PFJ_tmp = new ArrayList<Float>();  //probabilità di un sistema
 			for (int n = 0; n < x; n++) {
-				float sum_rkq = 0f;
+				float PFA_sum_rkq = 0.0f;
+				float PFJ_sum_rkq= 0.0f;
 				for (int i : train_queries) {
 					float Rkq = 0;
+					float Nkq = 0;
 					ArrayList<Utils.ResultLine> documents = pool.get(s).get(i - 351).getLines();
 					int k = documents.size() / x;         	//prendo la parte bassa
 					int docRim = documents.size() - k * x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
@@ -79,18 +82,31 @@ public class ProbFuse {
 							if (GT.get(i + "/" + documents.get(d).getDocName())) {
 								Rkq++;
 							}
+							else {
+								Nkq++;
+							}
+
 						}
 					}
-					sum_rkq = sum_rkq + Rkq / size;
+					PFA_sum_rkq = PFA_sum_rkq + Rkq / size;
+					if(Rkq+Nkq==0){
+						PFJ_sum_rkq = Float.NaN;
+					}
+					else {
+						if(PFJ_sum_rkq!=Float.NaN) {
+							PFJ_sum_rkq = PFJ_sum_rkq + Rkq / (Rkq + Nkq);
+						}
+					}
 				}
-				tmp.add(sum_rkq / train_queries.size());
+				PFA_tmp.add(PFA_sum_rkq / train_queries.size());
+				PFJ_tmp.add(PFJ_sum_rkq/train_queries.size());
 			}
-			Pdkm.add(tmp);
+			ProbFuseAll.add(PFA_tmp);
+			ProbFuseJudged.add(PFJ_tmp);
 		}
 
-		//t=TOPIC SCELTO
-		for (int query = 0; query < 50; query++) {
-			if (!train_queries.contains(query + 351)) {
+		for (int query = 0; query < Utils.queryNumber.size(); query++) {
+			if (!train_queries.contains(Utils.queryNumber.get(query))) {
 				for (int s = 0; s < Utils.how_many_models; s++) {
 					ArrayList<Utils.ResultLine> documents = pool.get(s).get(query).getLines();
 					for (int doc = 0; doc < documents.size(); doc++) {
@@ -105,7 +121,7 @@ public class ProbFuse {
 							seg = (doc - docRim * (k + 1)) / k + docRim;
 							//System.out.println("documento:" + doc + " nel segmento " + seg + " di dimensione " + k + " avendo un numero di documenti " + documents.size());
 						}
-						rl.setScore(Pdkm.get(s).get(seg) / (seg + 1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
+						rl.setScore(ProbFuseAll.get(s).get(seg) / (seg + 1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
 					}
 				}
 			}
