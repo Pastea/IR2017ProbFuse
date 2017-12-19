@@ -144,21 +144,21 @@ public class Main {
 		}
 		finally
 		{
-			outMeanProb.close();
-			bwMeanProb.close();
-			fwMeanProb.close();
+			if (outMeanProb != null) outMeanProb.close();
+			if (bwMeanProb != null) bwMeanProb.close();
+			if (fwMeanProb != null) fwMeanProb.close();
 
-			outVarianceProb.close();
-			bwVarianceProb.close();
-			fwVarianceProb.close();
+			if (outVarianceProb != null) outVarianceProb.close();
+			if (bwVarianceProb != null) bwVarianceProb.close();
+			if (fwVarianceProb != null) fwVarianceProb.close();
 
-			outMeanComb.close();
-			bwMeanComb.close();
-			fwMeanComb.close();
+			if (outMeanComb != null) outMeanComb.close();
+			if (bwMeanComb != null) bwMeanComb.close();
+			if (fwMeanComb != null) fwMeanComb.close();
 
-			outVarianceComb.close();
-			bwVarianceComb.close();
-			fwVarianceComb.close();
+			if (outVarianceComb != null) outVarianceComb.close();
+			if (bwVarianceComb != null) bwVarianceComb.close();
+			if (fwVarianceComb != null) fwVarianceComb.close();
 		}
 	}
 }

@@ -70,12 +70,6 @@ public class ProbFuseMainProva {
                         cont.addLine(s,i,n, documents.get(p)); //aggiungo un risultato
                     }
 
-                    if(train_queries.contains(i+351) && cont.getSegmentSize(s,i,n) == 0)
-                    {
-                        badTraining = true;
-                        return;
-                    }
-
                     if(left>0)
                     {
                         cont.addLine(s,i,n,documents.get((n+1)*k+offset));
