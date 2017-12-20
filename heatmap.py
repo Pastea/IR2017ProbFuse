@@ -22,7 +22,7 @@ for file in files:
 		dati.append(temp[1:-1])
 	ordinate = ordinate[:-1]
 	dati = dati[:-1]
-	trace = go.Heatmap(z=dati,x=ascisse,y=ordinate, colorscale='Viridis')
+	trace = go.Heatmap(z=dati,x=ascisse,y=ordinate, colorscale='Rainbow')
 	data = [trace]
 	layout = go.Layout(
 		title=file.split('.')[0],

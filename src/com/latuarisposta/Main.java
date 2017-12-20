@@ -141,6 +141,7 @@ public class Main {
 				outMeanComb.print("\n");
 				outVarianceComb.print("\n");
 			}
+			Utils.executeCommand("python heatmap.py", false);
 		}
 		catch(IOException ioe)
 		{
