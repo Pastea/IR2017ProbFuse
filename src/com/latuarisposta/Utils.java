@@ -175,13 +175,13 @@ public class Utils {
 			//topicResult è il sistema
 
 			for (ArrayList<ResultTopic> topicResults : result) {
-				//risultati (o linee) cdi quel topic
+				//risultati (o linee) di quel topic
 				ArrayList<ResultLine> temp = topicResults.get(i).getLines();
 				for (ResultLine line : temp) {
-					if (!docResult.containsKey("" + line.DocName)) {    //da sistemare
-						docResult.put("" + line.DocName, new ArrayList<ResultLine>());
+					if (!docResult.containsKey(line.DocName)) {    //da sistemare
+						docResult.put(line.DocName, new ArrayList<ResultLine>());
 					}
-					docResult.get("" + line.DocName).add(line);
+					docResult.get(line.DocName).add(line);
 				}
 			}
 
@@ -326,8 +326,8 @@ public class Utils {
 
 		//il loro settaggio si basa sul fatto che il primo ResultLine avra' lo score piu' alto
 		//e l'ultimo ResultLine avra' lo score piu' basso (sono ordinati)
-		private double maxScore = 0;
-		private double minScore = 0;
+		private double maxScore = -1;
+		private double minScore = -1;
 
 		public ResultTopic() {
 			lines = new ArrayList<>();
@@ -368,23 +368,23 @@ public class Utils {
 
 	public static class ResultLine {
 		private int topicId = -1;
-		private String boh1 = "NULL";
+		private String boh1 = "NULL";			//da sistemare
 		private String DocName = "NULL";
 		private int position = -1;
-		private double score = -1;
-		private String boh2 = "NULL";
+		private HashMap<String, Double> score;
+		private String boh2 = "NULL";			//da sistemare
 
 		public ResultLine() {
 		}
 
 		//ritorna il topicID
-		public int set(String line) {
+		public int set(String line, String scoreMethod) {
 			String[] parsedLine = line.split(" ");
 			topicId = Integer.parseInt(parsedLine[0]);
 			boh1 = parsedLine[1];
 			DocName = parsedLine[2];
 			position = Integer.parseInt(parsedLine[3]);
-			score = Double.parseDouble(parsedLine[4]);
+			score.put(scoreMethod,Double.parseDouble(parsedLine[4]));
 			boh2 = parsedLine[1];
 			return topicId;
 		}
