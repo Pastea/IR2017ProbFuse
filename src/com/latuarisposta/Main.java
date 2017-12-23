@@ -3,143 +3,85 @@ package com.latuarisposta;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
 
 public class Main {
+
+	public static final int SEG_MAX = 1000;
+	public static final float TRAININGSIZE_MAX =0.6f;
+	public static final int STEP = 20;
+	public static final int EXP_NUMBER = 20;
+	public static final int MODELS_NUMBER = 10;
+	public static final String COLLECTION_PATH = "linkCollection/";
+	public static final String TOPIC_FILE = "topics/topics.351-400_trec7.bin";
+	public static final String GT_FILE="qrels/qrels.trec7.bin";
+	public static final String RESULTFUSION_PATH ="trec_eval/";
+	public static final String CSV_PATH="";
 
 
 	public static void main(String[] args) throws Exception {
 
-		int maxSegm = 1000;
-		float maxPercTraining=0.6f;
-		int step = 20;
-		int numExp = 20;
-		FileWriter fwMeanProb = null;
-		BufferedWriter bwMeanProb = null;
-		PrintWriter outMeanProb = null;
+		//scelgo i metodi da usare per la fusione delle run
+		Utils.ListRankFusion listRankFusion = new Utils.ListRankFusion();
+		listRankFusion.add(new Utils.RankFusion(new CombMNZ()));
+		listRankFusion.add(new Utils.RankFusion(new ProbFuseAll()));
+		listRankFusion.add(new Utils.RankFusion(new ProbFuseJudged()));
 
-		FileWriter fwVarianceProb = null;
-		BufferedWriter bwVarianceProb = null;
-		PrintWriter outVarianceProb = null;
-
-		FileWriter fwMeanComb = null;
-		BufferedWriter bwMeanComb = null;
-		PrintWriter outMeanComb = null;
-
-		FileWriter fwVarianceComb = null;
-		BufferedWriter bwVarianceComb = null;
-		PrintWriter outVarianceComb = null;
 		try
 		{
-			Utils.executeCommand("rm resultsMeanProb.csv",false);
-			fwMeanProb = new FileWriter("resultsMeanProb.csv", false);
-			bwMeanProb = new BufferedWriter(fwMeanProb);
-			outMeanProb = new PrintWriter(bwMeanProb);
+			//inizializzo tutte le variabili di ogni algoritmo di fusione (writer, etc)
+			listRankFusion.initializeAll();
 
-			Utils.executeCommand("rm resultsVarianceProb.csv",false);
-			fwVarianceProb = new FileWriter("resultsVarianceProb.csv", false);
-			bwVarianceProb = new BufferedWriter(fwVarianceProb);
-			outVarianceProb = new PrintWriter(bwVarianceProb);
-
-			Utils.executeCommand("rm resultsMeanComb.csv",false);
-			fwMeanComb = new FileWriter("resultsMeanComb.csv", false);
-			bwMeanComb = new BufferedWriter(fwMeanComb);
-			outMeanComb = new PrintWriter(bwMeanComb);
-
-			Utils.executeCommand("rm resultsVarianceComb.csv",false);
-			fwVarianceComb = new FileWriter("resultsVarianceComb.csv", false);
-			bwVarianceComb = new BufferedWriter(fwVarianceComb);
-			outVarianceComb = new PrintWriter(bwVarianceComb);
-
-			//esegue il terieval una sola volta per avere i file .res, poi non serve piu' eseguire ogni singola volta
+			//eseguo l'indexing e il retrieval una sola volta per avere i file .res
 			Utils.executeTerrier();
+
+			//serializzo i risultati di terrier nel formato sistema-topic-documenti
+			ArrayList<ArrayList<Utils.ResultTopic>> pool = Utils.getTerrierResults();
 
 			/*struttura file.csv
 			segmenti		----------------->
 			perctraining
-				|
-				|
-				|
 			*/
-			outMeanProb.println("#segmenti");
-			outVarianceProb.println("#segmenti");
-			outMeanComb.println("#segmenti");
-			outVarianceComb.println("#segmenti");
 
-			outMeanProb.print(";");
-			outVarianceProb.print(";");
-			outMeanComb.print(";");
-			outVarianceComb.print(";");
-			for (int currentSegm = 1; currentSegm < maxSegm; currentSegm = currentSegm + step) {
-				outMeanProb.print(currentSegm+";");
-				outVarianceProb.print(currentSegm+";");
-				outMeanComb.print(currentSegm+";");
-				outVarianceComb.print(currentSegm+";");
+			//scrivo nel file la prima riga contenente il numero di segmenti che analizziamo
+			for (int currentSegm = 1; currentSegm < SEG_MAX; currentSegm = currentSegm + STEP) {
+				listRankFusion.printAll(currentSegm+";");
 			}
-			outMeanProb.print("\n");
-			outVarianceProb.print("\n");
-			outMeanComb.print("\n");
-			outVarianceComb.print("\n");
-			for(float currentPercTraining=0.1f;currentPercTraining<maxPercTraining;currentPercTraining=currentPercTraining+0.1f) {
-				outMeanProb.print(currentPercTraining + ";");
-				outVarianceProb.print(currentPercTraining + ";");
-				outMeanComb.print(currentPercTraining + ";");
-				outVarianceComb.print(currentPercTraining + ";");
+			listRankFusion.printAll("\n");
 
-				for (int currentSegm = 1; currentSegm < maxSegm; currentSegm = currentSegm + step) {
-					float sommaProb = 0;
-					LinkedList<Double> mapValuesProb = new LinkedList<>();
+			//inizio facendo variare il numero di training topics
+			for(float currentPercTraining = 0.1f; currentPercTraining< TRAININGSIZE_MAX; currentPercTraining=currentPercTraining+0.1f) {
+				listRankFusion.printAll(currentPercTraining+";");
 
-					float sommaComb = 0;
-					LinkedList<Double> mapValuesComb = new LinkedList<>();
+				//faccio variare il numero di segmenti per ogni run
+				for (int currentSegm = 1; currentSegm < SEG_MAX; currentSegm = currentSegm + STEP) {
+					listRankFusion.initializeParametersAll();
 
-					for (int i = 0; i < numExp; i++) {
-						ProbFuse probfuse = new ProbFuse(currentSegm, currentPercTraining);
+					//faccio EXP_NUMBER di esperimenti per ogni coppia di parametri size training e numero segmenti scelta
+					for (int i = 0; i < EXP_NUMBER; i++) {
+
+						//calcolo i valori di probfuseAll e probfuseJudge per ogni segmento e poi li assegno ad ogni documento
+						ProbFuse probfuse = new ProbFuse(currentSegm, currentPercTraining,pool);
+
+						//controllo nel caso ci sia stato un bad training set e nel caso rifaccio tutto da zero
 						while (probfuse.isTrainingBad()) {
 							System.out.println("BAD TRAINING on topic "+probfuse.getBadTrainingTopic()+" and model "+probfuse.getBadTrainingModel());
-							probfuse = new ProbFuse(currentSegm, currentPercTraining);
+							probfuse = new ProbFuse(currentSegm, currentPercTraining,pool);
 						}
 
-						BaseFuse basefuse = new BaseFuse(probfuse.getTrainQueries());
+						//fondo le rank dei sistemi per ogni algoritmo utilizzato e li salvo nei file res in trec_eval
+						Utils.createFinalRank(pool,listRankFusion.listRF);
 
-						float map_probFuse = Float.parseFloat(probfuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
-						float map_combFuse = Float.parseFloat(basefuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
+						//valuto il sistema con trec_eval
+						HashMap<String, String> resultTrecEval = Utils.evaluateTerrier(listRankFusion.listRF);
 
-						sommaProb += map_probFuse;
-						sommaComb += map_combFuse;
-
-						mapValuesProb.add(Double.valueOf(map_probFuse));
-						mapValuesComb.add(Double.valueOf(map_combFuse));
-						//float map_basefuse =Float.parseFloat(basefuse.getResult_trec_eval().split("map")[1].split("gm_ap")[0].split("\t")[2]);
-						//System.out.println("Map\nProb: " + map_probfuse);//+"\t Base:"+map_basefuse);
+						//aggiorno i risultati dell'esperimento
+						listRankFusion.update(resultTrecEval);
 					}
-					float meanProb = sommaProb / numExp;
-					float meanComb = sommaComb / numExp;
-
-					float varianceProb = 0;
-					float varianceComb = 0;
-					for (Double value : mapValuesProb) {
-						varianceProb = varianceProb + (float) Math.pow(value - meanProb, 2);
-						varianceComb = varianceComb + (float) Math.pow(value - meanComb, 2);
-					}
-					varianceProb = varianceProb / numExp;
-					varianceComb = varianceComb / numExp;
-
-					outMeanProb.print(meanProb + ";");
-					outVarianceProb.print(varianceProb + ";");
-					outMeanProb.flush();
-					outVarianceProb.flush();
-
-					outMeanComb.print(meanComb + ";");
-					outVarianceComb.print(varianceComb + ";");
-					outMeanComb.flush();
-					outVarianceComb.flush();
+					//salvo i risultati dell'esperimento in un file
+					listRankFusion.writeResult();
 				}
-				outMeanProb.print("\n");
-				outVarianceProb.print("\n");
-				outMeanComb.print("\n");
-				outVarianceComb.print("\n");
+				listRankFusion.printAll("\n");
 			}
 			Utils.executeCommand("python heatmap.py", false);
 		}
@@ -149,21 +91,9 @@ public class Main {
 		}
 		finally
 		{
-			if (outMeanProb != null) outMeanProb.close();
-			if (bwMeanProb != null) bwMeanProb.close();
-			if (fwMeanProb != null) fwMeanProb.close();
-
-			if (outVarianceProb != null) outVarianceProb.close();
-			if (bwVarianceProb != null) bwVarianceProb.close();
-			if (fwVarianceProb != null) fwVarianceProb.close();
-
-			if (outMeanComb != null) outMeanComb.close();
-			if (bwMeanComb != null) bwMeanComb.close();
-			if (fwMeanComb != null) fwMeanComb.close();
-
-			if (outVarianceComb != null) outVarianceComb.close();
-			if (bwVarianceComb != null) bwVarianceComb.close();
-			if (fwVarianceComb != null) fwVarianceComb.close();
+			listRankFusion.close();
 		}
 	}
+
+
 }

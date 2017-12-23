@@ -3,14 +3,16 @@ package com.latuarisposta;
 import java.io.*;
 import java.util.*;
 
+import static com.latuarisposta.Main.*;
+
 public class Utils {
 
-	public static final int how_many_models = 10;
-	public static ArrayList<Integer> queryNumber;
+	public static ArrayList<Integer> topics;
+	public static HashMap<String, Boolean> GT;
 
-	public static void setupTerrierModels()
-	{
-		for (int i = 0; i < Utils.how_many_models; i++) {
+	public static void setupTerrierModels() {
+		//creo i vari sistemi
+		for (int i = 0; i < MODELS_NUMBER; i++) {
 			String result=executeCommand("ls terrier-core-4.2-" + i,true);
 			//se non trova i file necessari cancella e ricrea
 			if(!result.contains("bin"))
@@ -23,14 +25,11 @@ public class Utils {
 
 	}
 
-	public static void executeTerrier()
-	{
+	public static void executeTerrier() {
 		setupTerrierModels();
 
-		String PATH_COLLECTION = "linkCollection/";
-
 		//rimuove le cartelle result se ci sono
-		for (int i = 0; i < Utils.how_many_models; i++) {
+		for (int i = 0; i < MODELS_NUMBER; i++) {
 			try {
 				delete(new File("terrier-core-4.2-" + i + "/var/results"));
 
@@ -39,41 +38,40 @@ public class Utils {
 		}
 
 		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
-		//il retrival va cambiato in base al modello ma per ora sta cosi'
-		for (int i = 0; i < Utils.how_many_models; i++) {
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + PATH_COLLECTION, false);
+		//il retrival va cambiato in base al modello ma per ora sta cosi' ???
+		for (int i = 0; i < MODELS_NUMBER; i++) {
+			executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + COLLECTION_PATH, false);
 			executeCommand("cp Sh_10Sist/terrier.properties." + i + " terrier-core-4.2-" + i + "/etc/terrier.properties", false);
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -i -j", false);
 			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh --printstats;", false);
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=topics/topics.351-400_trec7.bin", false);
+			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics="+TOPIC_FILE, false);
 
 		}
 
-		//imposta la variabile delle queries
-		queryNumber= queryCount("topics/topics.351-400_trec7.bin");
+		//serializza i topic utilizzati
+		topics = getTopics(TOPIC_FILE);
+		//serializza la grand truth per i topic utilizzati
+		getGT();
 
 	}
 
+	//serializza i risultati di terrier
 	public static ArrayList<ArrayList<ResultTopic>> getTerrierResults() {
-
-		//tira fuori i risultati
 
 		ArrayList<String> runs = new ArrayList<>();
 
-		for (int i = 0; i < Utils.how_many_models; i++) {
+		for (int i = 0; i < MODELS_NUMBER; i++) {
 			String path = "terrier-core-4.2-" + i + "/var/results";
 			File[] files = new File(path).listFiles();
 
 			for (File file : files) {
 				if (file.isFile()) {
-					if (file.getName().contains(".res") && !file.getName().contains(".res.settings")&&!file.getName().contains("Fusion")) {
+					if (file.getName().contains(".res") && !file.getName().contains(".res.settings")) {
 						runs.add(path + "/" + file.getName());
 					}
 				}
 			}
 		}
-
-		File FILENAMEFUSIONRANKING = new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistemi
 
 		ArrayList<ArrayList<ResultTopic>> result = new ArrayList<>();
 
@@ -90,7 +88,7 @@ public class Utils {
 				ArrayList<ResultTopic> modelX = new ArrayList<>();
 				result.add(modelX);
 
-				for (int q : queryNumber) {
+				for (int q : topics) {
 					modelX.add(new ResultTopic(q));
 				}
 
@@ -101,7 +99,7 @@ public class Utils {
 				}
 
 				for (ResultTopic topic : modelX) {
-					topic.normalize();
+					topic.normalize("base");
 				}
 
 			} catch (IOException e) {
@@ -109,118 +107,99 @@ public class Utils {
 			}
 		}
 
-		try {
-			FILENAMEFUSIONRANKING.delete();
-		} catch (Exception e) {
-		}
 		return result;
 	}
 
-	public static void theyretakingthehobbitstoisengardTheSequel(ProbFuseHandler result, RankFusionIF rankFusionAlg) {
-		int topicsToFuse = result.getModelSize(0);
-		for (int i = 0; i < topicsToFuse; i++)
-		{
+	//serializza la grand truth
+	public static void getGT(){
+		GT = new HashMap<>();
+		try {
 
-			//per ogni run si costruisce una hash map <DocID,List> di risultati
-			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();
-			//topicResult è il sistema
+			FileReader fr = new FileReader(GT_FILE);
+			BufferedReader br = new BufferedReader(fr);
 
-			for (int k=0; k<Utils.how_many_models; k++)// topicResults : result)
-			{
-				for(int j=0; j<result.getQuerySize(k,i); j++)
-				{
-					//risultati (o linee) cdi quel topic
-					List<ResultLine> temp = result.getSegment(k,i,j);
-					for (ResultLine line : temp) {
-						if (!docResult.containsKey("" + line.DocName))
-						{    //da sistemare
-							docResult.put("" + line.DocName, new ArrayList<ResultLine>());
+			String sCurrentLine;
+
+			while ((sCurrentLine = br.readLine()) != null) {
+				String[] tmp = sCurrentLine.split(" ");
+				GT.put(tmp[0] + "/" + tmp[2], tmp[3].equals("0") ? false : true); //lo slassssh non è messo a caso ma ha il suo senso, im not joking guys its important, trust me
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void createFinalRank(ArrayList<ArrayList<ResultTopic>> pool, ArrayList<RankFusion> listRankFusion) {
+
+		for (int topic = 0; topic < Utils.topics.size(); topic++) {
+			if (!ProbFuse.train_topics.contains(topics.get(topic))){
+				//per ogni run si costruisce una hash map <DocID,List> di risultati
+				HashMap<String, ArrayList<MultipleResultLine>> docResult = new HashMap<>();
+
+				for (ArrayList<ResultTopic> model : pool) {
+					//risultati (o linee) di quel topic
+					ArrayList<MultipleResultLine> documents = model.get(topic).getLines();
+					for (MultipleResultLine line : documents) {
+						if (!docResult.containsKey(line.getDocName())) {
+							docResult.put(line.getDocName(), new ArrayList<MultipleResultLine>());
 						}
-						docResult.get("" + line.DocName).add(line);
+						docResult.get(line.getDocName()).add(line);
 					}
 				}
+
+				//now the fusion ranking
+				for (RankFusion rankFusion : listRankFusion) {
+					ArrayList<SingleResultLine> fusionRank = new ArrayList<>();
+
+					for (Map.Entry<String, ArrayList<MultipleResultLine>> document : docResult.entrySet()) {
+						SingleResultLine documentFusionLine = new SingleResultLine();
+
+						double score = rankFusion.algorithm.computeScore(document.getValue());
+
+						//prende la prima linea relativa a quel documento per riempire i campi comuni e cambia lo score con quello del fusion ranking
+						documentFusionLine.migrate(document.getValue().get(0), score);
+						fusionRank.add(documentFusionLine);
+					}
+
+					//ora ordino
+					Collections.sort(fusionRank, new Utils.CustomComparator());
+
+
+					File FILENAMEFUSIONRANKING = new File("trec_eval/resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistem
+
+					Utils.writeToFile(fusionRank, FILENAMEFUSIONRANKING.getPath(), 1000);
+				}
 			}
-
-			//now the fusion ranking
-			//metodi base
-			ArrayList<ResultLine> fusionRankingResult = new ArrayList<>();
-
-			for (Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
-				ResultLine fusionResult = new ResultLine();
-
-				double score = rankFusionAlg.computeScore(entry.getValue());
-
-				//prende un oggetto a caso per riempire i campi e cambia lo score con quello del fusion ranking
-				fusionResult.set(entry.getValue().get(0), score);
-				fusionRankingResult.add(fusionResult);
-			}
-			//ora ordino
-
-			Collections.sort(fusionRankingResult, new Utils.CustomComparator());
-
-
-			File FILENAMEFUSIONRANKING = new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistem
-
-			Utils.writeToFile(fusionRankingResult, FILENAMEFUSIONRANKING.getPath(), 1000);
 		}
 	}
 
-	public static void createFinalRank(ArrayList<ArrayList<ResultTopic>> result, RankFusionIF rankFusionAlg) {
-		int topicToFuse = result.get(0).size();
-		for (int i = 0; i < topicToFuse; i++) {
-
-			//per ogni run si costruisce una hash map <DocID,List> di risultati
-			HashMap<String, ArrayList<ResultLine>> docResult = new HashMap<>();
-			//ArrayList<String> topicIdList = new ArrayList<>();
-			//topicResult è il sistema
-
-			for (ArrayList<ResultTopic> topicResults : result) {
-				//risultati (o linee) di quel topic
-				ArrayList<ResultLine> temp = topicResults.get(i).getLines();
-				for (ResultLine line : temp) {
-					if (!docResult.containsKey(line.DocName)) {    //da sistemare
-						docResult.put(line.DocName, new ArrayList<ResultLine>());
-					}
-					docResult.get(line.DocName).add(line);
-				}
+	public static HashMap<String,String>  evaluateTerrier(ArrayList<RankFusion> listRankFusion){
+		HashMap<String,String> result_trec_eval = new HashMap<>();
+		for (RankFusion rankFusion: listRankFusion) {
+			String trec_eval = Utils.executeCommand("trec_eval/trec_eval "+ GT_FILE+" "+ RESULTFUSION_PATH +"/resultFusionRank"+ rankFusion.algorithm.getClass().getSimpleName() +".res", true);
+			result_trec_eval.put(rankFusion.algorithm.getClass().getSimpleName(), trec_eval);
+			try {
+				File file = new File(RESULTFUSION_PATH +"/resultFusionRank"+ rankFusion.algorithm.getClass().getSimpleName() +".res");
+				file.delete();
+			} catch (Exception e) {
 			}
-
-			//now the fusion ranking
-			//metodi base
-			ArrayList<ResultLine> fusionRankingResult = new ArrayList<>();
-
-			for (Map.Entry<String, ArrayList<ResultLine>> entry : docResult.entrySet()) {
-				ResultLine fusionResult = new ResultLine();
-
-				double score = rankFusionAlg.computeScore(entry.getValue());
-
-				//prende un oggetto a caso per riempire i campi e cambia lo score con quello del fusion ranking
-				fusionResult.set(entry.getValue().get(0), score);
-				fusionRankingResult.add(fusionResult);
-			}
-			//ora ordino
-
-			Collections.sort(fusionRankingResult, new Utils.CustomComparator());
-
-
-			File FILENAMEFUSIONRANKING = new File("terrier-core-4.2-0/var/results/resultFusionRanking.res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistem
-
-			Utils.writeToFile(fusionRankingResult, FILENAMEFUSIONRANKING.getPath(), 1000);
 		}
+		return result_trec_eval;
 	}
 
-	static class CustomComparator implements Comparator<ResultLine> {
+	static class CustomComparator implements Comparator<SingleResultLine> {
 
-		public int compare(ResultLine o1, ResultLine o2) {
+		public int compare(SingleResultLine o1, SingleResultLine o2) {
 			return -Double.compare(o1.getScore(), o2.getScore());
 		}
 	}
 
-	static double[] toDoubleArray(ArrayList<ResultLine> results) {
+	static double[] toDoubleArray(ArrayList<MultipleResultLine> results,String scoreUsed) {
 		double[] scoreArray = new double[results.size()];
 		int count = 0;
-		for (ResultLine line : results) {
-			scoreArray[count] = line.getScore();
+		for (MultipleResultLine line : results) {
+			scoreArray[count] = line.getScore(scoreUsed);
 			count++;
 		}
 		Arrays.sort(scoreArray);
@@ -257,13 +236,13 @@ public class Utils {
 	}
 
 
-	public static void writeToFile(ArrayList<ResultLine> toWrite, String path, int howMany) {
+	public static void writeToFile(ArrayList<SingleResultLine> toWrite, String path, int howMany) {
 		try {
 			int count = 0;
 			FileWriter fw = new FileWriter(path, true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			PrintWriter out = new PrintWriter(bw);
-			for (ResultLine line : toWrite) {
+			for (SingleResultLine line : toWrite) {
 				if (count < howMany)
 					out.println(line.toString(count));
 				count++;
@@ -301,28 +280,27 @@ public class Utils {
 		}
 	}
 
-	public static ArrayList<Integer> queryCount(String file) {
-		ArrayList<Integer> queryNumbers = null;
+	public static ArrayList<Integer> getTopics(String file) {
+		ArrayList<Integer> topic = null;
 		try {
 			FileReader fr = new FileReader(file);
 			BufferedReader br = new BufferedReader(fr);
 			String sCurrentLine;
-			queryNumbers = new ArrayList<Integer>();
+			topic = new ArrayList<Integer>();
 			while ((sCurrentLine = br.readLine()) != null) {
 				if (sCurrentLine.contains("<num>")) {
-					queryNumbers.add(Integer.parseInt(sCurrentLine.split(":")[1].trim()));
+					topic.add(Integer.parseInt(sCurrentLine.split(":")[1].trim()));
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return queryNumbers;
+		return topic;
 	}
-
 
 	public static class ResultTopic {
 		private int topicId;
-		private ArrayList<ResultLine> lines;
+		private ArrayList<MultipleResultLine> lines;
 
 		//il loro settaggio si basa sul fatto che il primo ResultLine avra' lo score piu' alto
 		//e l'ultimo ResultLine avra' lo score piu' basso (sono ordinati)
@@ -340,12 +318,12 @@ public class Utils {
 
 		//aggiune la riga
 		public void add(String line) {
-			ResultLine currentLine = new ResultLine();
+			MultipleResultLine currentLine = new MultipleResultLine();
 			topicId = currentLine.set(line);
 			if (lines.size() == 0) {
-				maxScore = currentLine.getScore();
+				maxScore = currentLine.getScore("base");
 			} else {
-				minScore = currentLine.getScore();
+				minScore = currentLine.getScore("base");
 			}
 			lines.add(currentLine);
 		}
@@ -354,56 +332,49 @@ public class Utils {
 			return topicId;
 		}
 
-		public void normalize() {
-			for (ResultLine line : lines) {
-				line.setScore((line.getScore() - minScore) / (maxScore - minScore));
+		public void normalize(String scoreName) {
+			for (MultipleResultLine line : lines) {
+				line.setScore(scoreName, (line.getScore(scoreName) - minScore) / (maxScore - minScore));
 			}
 		}
 
-		public ArrayList<ResultLine> getLines() {
+		public ArrayList<MultipleResultLine> getLines() {
 			return lines;
 		}
 	}
 
-
 	public static class ResultLine {
-		private int topicId = -1;
-		private String boh1 = "NULL";			//da sistemare
-		private String DocName = "NULL";
-		private int position = -1;
-		private HashMap<String, Double> score;
-		private String boh2 = "NULL";			//da sistemare
+		private int topicId;
+		private String boh1;			//da sistemare
+		private String docName;
+		private int position;
+		private String modelName;
 
 		public ResultLine() {
+			topicId = -1;
+			boh1 = "NULL";
+			docName = "NULL";
+			position = -1;
+			modelName = "NULL";
 		}
 
 		//ritorna il topicID
-		public int set(String line, String scoreMethod) {
+		public int set(String line) {
 			String[] parsedLine = line.split(" ");
 			topicId = Integer.parseInt(parsedLine[0]);
 			boh1 = parsedLine[1];
-			DocName = parsedLine[2];
-			position = Integer.parseInt(parsedLine[3]);
-			score.put(scoreMethod,Double.parseDouble(parsedLine[4]));
-			boh2 = parsedLine[1];
+			docName = parsedLine[2];
+			position=Integer.parseInt(parsedLine[3]);
+			modelName = parsedLine[5];
 			return topicId;
 		}
 
-		public void set(ResultLine oldObject, double valueScore) {
+		public void clone(ResultLine oldObject) {
 			topicId = oldObject.getTopicId();
 			boh1 = oldObject.getBoh1();
-			DocName = oldObject.getDocName();
-			position = -1;
-			score = valueScore;
-			boh2 = oldObject.getBoh2();
-		}
-
-		public double getScore() {
-			return score;
-		}
-
-		public void setScore(double value) {
-			score = value;
+			docName = oldObject.getDocName();
+			position=-1;
+			modelName = oldObject.getModelName();
 		}
 
 		public int getTopicId() {
@@ -415,19 +386,205 @@ public class Utils {
 		}
 
 		public String getDocName() {
-			return DocName;
+			return docName;
 		}
 
-		public String getBoh2() {
-			return boh2;
+		public String getModelName() {
+			return modelName;
+		}
+
+	}
+
+	public static class SingleResultLine extends ResultLine{
+		private double score;
+
+		public SingleResultLine(){
+			super();
+			score = -1;
+		}
+
+		public void migrate(MultipleResultLine oldObject, double valueScore) {
+			super.clone(oldObject);
+			score=valueScore;
+		}
+
+		public double getScore() {
+			return score;
+		}
+
+		public void setScore(double value) {
+			score=value;
 		}
 
 		public String toString() {
-			return "" + topicId + " " + boh1 + " " + DocName + " " + position + " " + score + " " + boh2;
+			return "" + super.topicId + " " + super.boh1 + " " + super.docName + " " + super.position + " " + score + " " + super.modelName;
 		}
 
 		public String toString(int positionValue) {
-			return "" + topicId + " " + boh1 + " " + DocName + " " + positionValue + " " + score + " " + boh2;
+			return "" + super.topicId + " " + super.boh1 + " " + super.docName + " " + positionValue + " " + score + " " + super.modelName;
+		}
+	}
+
+	public static class MultipleResultLine extends ResultLine{
+		private HashMap<String,Double> score;
+
+		public MultipleResultLine(){
+			super();
+			score = new HashMap<>();
+		}
+
+		//ritorna il topicID
+		public int set(String line) {
+			super.set(line);
+			String[] parsedLine = line.split(" ");
+			score.put("base",Double.parseDouble(parsedLine[4]));
+			return super.getTopicId();
+		}
+
+		public double getScore(String scoreName) {
+			return score.get(scoreName);
+		}
+
+		public void setScore(String scoreName, double value) {
+			if (score.containsKey(scoreName)){
+				score.replace(scoreName,value);
+			}
+			else{
+				score.put(scoreName,value);
+			}
+		}
+
+	}
+
+	public static class RankFusion {
+
+		public RankFusionIF algorithm;
+
+		public FileWriter fwMean = null;
+		public BufferedWriter bwMean = null;
+		public PrintWriter outMean = null;
+
+		public FileWriter fwVariance = null;
+		public BufferedWriter bwVariance = null;
+		public PrintWriter outVariance = null;
+
+		public double somma=0;
+		public LinkedList<Double> mapValues;
+
+		public RankFusion(RankFusionIF alg){
+			algorithm=alg;
+		}
+
+		public void initialize() throws Exception {
+			Utils.executeCommand("rm "+CSV_PATH+"resultsMean"+ algorithm.getClass().getSimpleName()+".csv",false);
+			fwMean = new FileWriter(CSV_PATH+"resultsMean"+algorithm.getClass().getSimpleName()+".csv", false);
+			bwMean = new BufferedWriter(fwMean);
+			outMean = new PrintWriter(bwMean);
+			outMean.println("#segmenti");
+			outMean.print(";");
+			Utils.executeCommand("rm "+CSV_PATH+"resultsVariance"+ algorithm.getClass().getSimpleName()+".csv",false);
+			fwVariance = new FileWriter(CSV_PATH+"resultsVariance"+ algorithm.getClass().getSimpleName()+".csv", false);
+			bwVariance = new BufferedWriter(fwVariance);
+			outVariance = new PrintWriter(bwVariance);
+			outVariance.println("#segmenti");
+			outMean.print(";");
+		}
+
+		public void printAll(String s){
+			printMean(s);
+			printVar(s);
+		}
+
+		public void printMean(String s){
+			outMean.print(s);
+			outMean.flush();
+		}
+
+		public void printVar(String s){
+			outVariance.print(s);
+			outVariance.flush();
+		}
+
+		public void initializeParameters(){
+			somma=0;
+			mapValues = new LinkedList<>();
+		}
+
+		public void close() throws Exception{
+			if (outMean != null) outMean.close();
+			if (bwMean != null) bwMean.close();
+			if (fwMean != null) fwMean.close();
+
+			if (outVariance != null) outVariance.close();
+			if (bwVariance != null) bwVariance.close();
+			if (fwVariance != null) fwVariance.close();
+		}
+	}
+
+	public static class ListRankFusion {
+		public ArrayList<RankFusion> listRF;
+
+		public ListRankFusion(){
+			listRF = new ArrayList<>();
+		}
+
+		public void add(RankFusion RF){
+			listRF.add(RF);
+		}
+
+		public ArrayList<RankFusionIF> getAlgorithm() {
+			ArrayList<RankFusionIF> algorithm = new ArrayList<>();
+			for (RankFusion RF: listRF) {
+				algorithm.add(RF.algorithm);
+			}
+			return algorithm;
+		}
+
+		public void initializeAll() throws Exception{
+			for (Utils.RankFusion RF:listRF) {
+				RF.initialize();
+			}
+
+		}
+
+		public void printAll(String s){
+			for (Utils.RankFusion RF:listRF) {
+				RF.printAll(s);
+			}
+		}
+
+		public void initializeParametersAll(){
+			for(Utils.RankFusion RF:listRF){
+				RF.initializeParameters();
+			}
+		}
+
+		public void update(HashMap<String, String> resultTrecEval){
+			for (RankFusion RF: listRF) {
+				double map = Double.parseDouble(resultTrecEval.get(RF.algorithm.getClass().getSimpleName()).split("map")[1].split("gm_ap")[0].split("\t")[2]);
+				RF.somma += map;
+				RF.mapValues.add(map);
+			}
+
+		}
+
+		public void writeResult(){
+			for(RankFusion RF: listRF){
+				double mean = RF.somma / EXP_NUMBER;
+				double variance = 0;
+				for (Double value : RF.mapValues) {
+					variance = variance + Math.pow(value - mean, 2);
+				}
+				variance = variance / EXP_NUMBER;
+				RF.printMean(mean + ";");
+				RF.printVar(variance + ";");
+			}
+		}
+
+		public void close() throws Exception{
+			for(Utils.RankFusion RF: listRF){
+				RF.close();
+			}
 		}
 	}
 }

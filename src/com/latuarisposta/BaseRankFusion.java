@@ -6,21 +6,24 @@ import java.util.Arrays;
 import static com.latuarisposta.Utils.toDoubleArray;
 
 interface RankFusionIF {
-	public double computeScore(ArrayList<Utils.ResultLine> results);
+	//tipo di score utilizzato per fare il calcolo dello score finale, base si riferisce al punteggio dato da terrier
+	String scoreUsed="";
+	double computeScore(ArrayList<Utils.MultipleResultLine> results);
 }
 
 class CombMAX implements RankFusionIF {
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] scoreArray = toDoubleArray(results);
-
+	public String scoreUsed = "base";
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] scoreArray = toDoubleArray(results,scoreUsed);
 		double max = scoreArray[scoreArray.length - 1];
 		return max;
 	}
 }
 
 class CombMIN implements RankFusionIF {
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] scoreArray = toDoubleArray(results);
+	public String scoreUsed = "base";
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] scoreArray = toDoubleArray(results,scoreUsed);
 
 		double min = scoreArray[0];
 		return min;
@@ -30,8 +33,10 @@ class CombMIN implements RankFusionIF {
 
 class CombSUM implements RankFusionIF {
 	//the summation of the set of similarity values, or, equivalently, the numerical mean of the set of the set of similarity
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] target = toDoubleArray(results);
+	public String scoreUsed = "base";
+
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] target = toDoubleArray(results,scoreUsed);
 
 		double sum = 0;
 		for (int i = 0; i < target.length; i++) {
@@ -45,8 +50,10 @@ class CombSUM implements RankFusionIF {
 
 class CombMED implements RankFusionIF {
 	//the median similarity value
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] target = toDoubleArray(results);
+	public String scoreUsed = "base";
+
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] target = toDoubleArray(results,scoreUsed);
 		Arrays.sort(target);
 		int middle = target.length / 2;
 		if (target.length % 2 == 0) {
@@ -59,8 +66,10 @@ class CombMED implements RankFusionIF {
 
 class CombANZ implements RankFusionIF {
 	//average of the non-zero similarity values
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] target = toDoubleArray(results);
+	public String scoreUsed = "base";
+
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] target = toDoubleArray(results,scoreUsed);
 
 		double nonZero = 0;
 		double sum = 0;
@@ -78,8 +87,10 @@ class CombANZ implements RankFusionIF {
 
 class CombMNZ implements RankFusionIF {
 	//average of the non-zero similarity values
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] target = toDoubleArray(results);
+	public String scoreUsed = "base";
+
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] target = toDoubleArray(results,scoreUsed);
 
 		double nonZero = 0;
 		double sum = 0;
@@ -92,9 +103,26 @@ class CombMNZ implements RankFusionIF {
 	}
 }
 
-class CombProbFuse implements RankFusionIF {
-	public double computeScore(ArrayList<Utils.ResultLine> results) {
-		double[] target = toDoubleArray(results);
+class ProbFuseAll implements RankFusionIF {
+	public String scoreUsed = "ProbFuseAll";
+
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] target = toDoubleArray(results,scoreUsed);
+
+		double sum = 0;
+		for (int i = 0; i < target.length; i++) {
+			sum = sum + target[i];
+		}
+
+		return sum;
+	}
+}
+
+class ProbFuseJudged implements RankFusionIF {
+	public String scoreUsed = "ProbFuseJudged";
+
+	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
+		double[] target = toDoubleArray(results,scoreUsed);
 
 		double sum = 0;
 		for (int i = 0; i < target.length; i++) {
