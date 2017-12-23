@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
+/*
 public class ProbFuseMainProva {
 
     private ArrayList<Integer> train_queries;
@@ -161,4 +161,4 @@ public class ProbFuseMainProva {
     public String getResult_trec_eval() {
         return result_trec_eval;
     }
-}
+}*/

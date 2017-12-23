@@ -7,7 +7,7 @@ import static com.latuarisposta.Utils.*;
 public class BaseFuse {
 
 	private String result_trec_eval;
-
+/*
 	public BaseFuse() {
 		ArrayList<ArrayList<Utils.ResultTopic>> result = getTerrierResults();
 
@@ -52,5 +52,5 @@ public class BaseFuse {
 
 	public String getResult_trec_eval() {
 		return result_trec_eval;
-	}
+	}*/
 }
