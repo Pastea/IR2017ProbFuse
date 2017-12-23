@@ -371,20 +371,20 @@ public class Utils {
 		private String boh1 = "NULL";			//da sistemare
 		private String DocName = "NULL";
 		private int position = -1;
-		private HashMap<String, Double> score;
+		private double score;
 		private String boh2 = "NULL";			//da sistemare
 
 		public ResultLine() {
 		}
 
 		//ritorna il topicID
-		public int set(String line, String scoreMethod) {
+		public int set(String line) {
 			String[] parsedLine = line.split(" ");
 			topicId = Integer.parseInt(parsedLine[0]);
 			boh1 = parsedLine[1];
 			DocName = parsedLine[2];
 			position = Integer.parseInt(parsedLine[3]);
-			score.put(scoreMethod,Double.parseDouble(parsedLine[4]));
+			score=Double.parseDouble(parsedLine[4]);
 			boh2 = parsedLine[1];
 			return topicId;
 		}
