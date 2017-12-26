@@ -10,6 +10,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/linkCollection" />
+      <excludeFolder url="file://$MODULE_DIR$/runs_probfuse2006" />
       <excludeFolder url="file://$MODULE_DIR$/terrier-core-4.2-0" />
       <excludeFolder url="file://$MODULE_DIR$/terrier-core-4.2-1" />
       <excludeFolder url="file://$MODULE_DIR$/terrier-core-4.2-2" />
