@@ -1,4 +1,4 @@
-package com.latuarisposta;
+/*package com.latuarisposta;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-/*
+
 public class ProbFuseMainProva {
 
     private ArrayList<Integer> train_queries;
@@ -57,7 +57,7 @@ public class ProbFuseMainProva {
             for (int i=0; i<50; i++)                    //scorro le query
             {
                 cont.addQuery(s);                       //creo una query
-                ArrayList<Utils.ResultLine> documents = terrier.get(s).get(i).getLines();
+                ArrayList<Utils.MultipleResultLine> documents = terrier.get(s).get(i).getLines();//???!!!
                 int k = documents.size() / x;           //numero di documenti per segmento, prendo la parte bassa
                 int left = documents.size()-k*x;
                 int offset = 0;
@@ -118,7 +118,7 @@ public class ProbFuseMainProva {
                 {
                     for(int i=0; i<x; i++)
                     {
-                        for (Utils.ResultLine l: cont.getSegment(s,query,i))
+                        for (Utils.SingleResultLine l: cont.getSegment(s,query,i))
                         {
                             l.setScore(pdkm.get(s).get(i)/(i+1));
                         }

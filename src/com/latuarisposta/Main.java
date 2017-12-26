@@ -2,21 +2,23 @@ package com.latuarisposta;
 
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
+
+import static com.latuarisposta.Utils.*;
 
 public class Main {
 
-	public static final int SEG_MAX = 1000;
-	public static final float TRAININGSIZE_MAX =0.6f;
-	public static final int STEP = 20;
-	public static final int EXP_NUMBER = 20;
-	public static final int MODELS_NUMBER = 10;
+	public static final int[] SEG={25};
+	public static final int[] TRAININGSIZE ={50};
+	public static final int EXPERIMENT = 20;
+	public static final int MODELS = 10;
 	public static final String COLLECTION_PATH = "linkCollection/";
-	public static final String TOPIC_FILE = "topics/topics.351-400_trec7.bin";
-	public static final String GT_FILE="qrels/qrels.trec7.bin";
+	public static final String TOPIC_FILE = "topics/topics.151-200_trec3.bin";
+	public static final String GT_FILE="qrels/qrels.151-200_trec3.bin";
 	public static final String RESULTFUSION_PATH ="trec_eval/";
 	public static final String CSV_PATH="";
+	public static final String RUN_PATH="runs_probfuse2006/TEST/";
+	public static final boolean TEST=true;
 
 
 	public static void main(String[] args) throws Exception {
@@ -32,11 +34,8 @@ public class Main {
 			//inizializzo tutte le variabili di ogni algoritmo di fusione (writer, etc)
 			listRankFusion.initializeAll();
 
-			//eseguo l'indexing e il retrieval una sola volta per avere i file .res
+			//eseguo l'indexing e il retrieval una sola volta per avere i file .res e serializzo i topic, la GT e il pool
 			Utils.executeTerrier();
-
-			//serializzo i risultati di terrier nel formato sistema-topic-documenti
-			ArrayList<ArrayList<Utils.ResultTopic>> pool = Utils.getTerrierResults();
 
 			/*struttura file.csv
 			segmenti		----------------->
@@ -44,21 +43,21 @@ public class Main {
 			*/
 
 			//scrivo nel file la prima riga contenente il numero di segmenti che analizziamo
-			for (int currentSegm = 1; currentSegm < SEG_MAX; currentSegm = currentSegm + STEP) {
+			for (int currentSegm : SEG) {
 				listRankFusion.printAll(currentSegm+";");
 			}
 			listRankFusion.printAll("\n");
 
 			//inizio facendo variare il numero di training topics
-			for(float currentPercTraining = 0.1f; currentPercTraining< TRAININGSIZE_MAX; currentPercTraining=currentPercTraining+0.1f) {
+			for(int currentPercTraining : TRAININGSIZE) {
 				listRankFusion.printAll(currentPercTraining+";");
 
 				//faccio variare il numero di segmenti per ogni run
-				for (int currentSegm = 1; currentSegm < SEG_MAX; currentSegm = currentSegm + STEP) {
+				for (int currentSegm : SEG) {
 					listRankFusion.initializeParametersAll();
 
-					//faccio EXP_NUMBER di esperimenti per ogni coppia di parametri size training e numero segmenti scelta
-					for (int i = 0; i < EXP_NUMBER; i++) {
+					//faccio EXPERIMENT esperimenti per ogni coppia di parametri size training e numero segmenti scelta
+					for (int i = 0; i < EXPERIMENT; i++) {
 
 						//calcolo i valori di probfuseAll e probfuseJudge per ogni segmento e poi li assegno ad ogni documento
 						ProbFuse probfuse = new ProbFuse(currentSegm, currentPercTraining,pool);

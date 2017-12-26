@@ -9,37 +9,30 @@ public class ProbFuse {
 	private int badTopic=-1;
 	private int badModel=-1;
 
-	public ProbFuse(int nSeg, float nTraining, ArrayList<ArrayList<Utils.ResultTopic>> pool) {
+	public ProbFuse(int nSeg, int nTraining, ArrayList<ArrayList<Utils.ResultTopic>> pool) {
 
 		badTraining = false;
 		badTopic=-1;
 		badModel=-1;
 
-		float t = nTraining;        //percentuale di topic nel training set
-		int x = nSeg;               //numero segmenti
+		int t = nTraining;        //percentuale di topic nel training set
+		int x = nSeg;             //numero segmenti
 		train_topics = new ArrayList<>();
 
-		train_topics.add(351);
-		train_topics.add(363);
-		train_topics.add(368);
-		train_topics.add(376);
-		train_topics.add(388);
-		train_topics.add(399);
-
 		//scelgo arbitrariamente i traning topics
-		/*while (train_topics.size() < t * Utils.topics.size()) {
+		while (train_topics.size() < (t * Utils.topics.size())/100) {
 			int tmp = Utils.topics.get((int) (Math.random() * Utils.topics.size()));
 			//evita anche i topic 354, 367, 369,379 perche' tendono a dare pochi risultati e quindi sono poco indicati per essere usati nel training
 			//non becca tutti i casi di training cattivo ma ne diminuisce la comparsa
-			if (!train_topics.contains(tmp) && tmp != 364 && tmp != 367 && tmp != 369 && tmp != 379) {
+			if (!train_topics.contains(tmp)) {
 				train_topics.add(tmp);
 			}
-		}*/
+		}
 
 		//calcolo il punteggio per i vari segmenti di ogni sistema
 		ArrayList<ArrayList<Double>> ProbFuseAll = new ArrayList<ArrayList<Double>>();
 		ArrayList<ArrayList<Double>> ProbFuseJudged = new ArrayList<ArrayList<Double>>();
-		for (int s = 0; s < MODELS_NUMBER; s++) {
+		for (int s = 0; s < pool.size(); s++) {
 			ArrayList<Double> PFA_tmp = new ArrayList<Double>();  //probabilità di un sistema
 			ArrayList<Double> PFJ_tmp = new ArrayList<Double>();  //probabilità di un sistema
 			for (int n = 0; n < x; n++) {
@@ -90,7 +83,7 @@ public class ProbFuse {
 		//calcolo i punteggi di ogni documento
 		for (int topic = 0; topic < Utils.topics.size(); topic++) {
 			if (!train_topics.contains(Utils.topics.get(topic))) {
-				for (int s = 0; s < MODELS_NUMBER; s++) {
+				for (int s = 0; s < pool.size(); s++) {
 					ArrayList<Utils.MultipleResultLine> documents = pool.get(s).get(topic).getLines();
 					for (int doc = 0; doc < documents.size(); doc++) {
 						Utils.MultipleResultLine rl = documents.get(doc);

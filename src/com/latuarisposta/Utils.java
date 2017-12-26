@@ -1,18 +1,20 @@
 package com.latuarisposta;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static com.latuarisposta.Main.*;
 
 public class Utils {
 
+	public static ArrayList<ArrayList<Utils.ResultTopic>> pool;
 	public static ArrayList<Integer> topics;
 	public static HashMap<String, Boolean> GT;
 
 	public static void setupTerrierModels() {
 		//creo i vari sistemi
-		for (int i = 0; i < MODELS_NUMBER; i++) {
+		for (int i = 0; i < MODELS; i++) {
 			String result=executeCommand("ls terrier-core-4.2-" + i,true);
 			//se non trova i file necessari cancella e ricrea
 			if(!result.contains("bin"))
@@ -26,41 +28,53 @@ public class Utils {
 	}
 
 	public static void executeTerrier() {
-		setupTerrierModels();
+		if(!TEST) {
+			setupTerrierModels();
 
-		//rimuove le cartelle result se ci sono
-		for (int i = 0; i < MODELS_NUMBER; i++) {
-			try {
-				delete(new File("terrier-core-4.2-" + i + "/var/results"));
+			//rimuove le cartelle result se ci sono
+			for (int i = 0; i < MODELS; i++) {
+				try {
+					delete(new File("terrier-core-4.2-" + i + "/var/results"));
 
-			} catch (Exception e) {
+				} catch (Exception e) {
+				}
 			}
+			executeCommand("rm " + RESULTFUSION_PATH + "*.res", false);
+
+			//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
+			//il retrival va cambiato in base al modello ma per ora sta cosi' ???
+			for (int i = 0; i < MODELS; i++) {
+				executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + COLLECTION_PATH, false);
+				executeCommand("cp Sh_10Sist/terrier.properties." + i + " terrier-core-4.2-" + i + "/etc/terrier.properties", false);
+				executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -i -j", false);
+				executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh --printstats;", false);
+				executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics=" + TOPIC_FILE, false);
+
+			}
+
+			//serializza i topic utilizzati
+			getTopics();
+			//serializza la grand truth per i topic utilizzati
+			getGT();
+			//serializzo i risultati di terrier nel formato sistema-topic-documenti
+			Utils.getTerrierResults();
 		}
-
-		//esegue i dieci modelli, ogni modello i-esimo e' in terrier-core-4.2-i
-		//il retrival va cambiato in base al modello ma per ora sta cosi' ???
-		for (int i = 0; i < MODELS_NUMBER; i++) {
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_setup.sh " + COLLECTION_PATH, false);
-			executeCommand("cp Sh_10Sist/terrier.properties." + i + " terrier-core-4.2-" + i + "/etc/terrier.properties", false);
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -i -j", false);
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh --printstats;", false);
-			executeCommand("terrier-core-4.2-" + i + "/bin/trec_terrier.sh -r -Dtrec.topics="+TOPIC_FILE, false);
-
+		else{
+			//serializza i topic utilizzati
+			getTopics();
+			//serializza la grand truth per i topic utilizzati
+			getGT();
+			//serializzo i risultati di terrier nel formato sistema-topic-documenti
+			Utils.getTerrierResults(RUN_PATH);
 		}
-
-		//serializza i topic utilizzati
-		topics = getTopics(TOPIC_FILE);
-		//serializza la grand truth per i topic utilizzati
-		getGT();
-
 	}
 
 	//serializza i risultati di terrier
-	public static ArrayList<ArrayList<ResultTopic>> getTerrierResults() {
+	public static void getTerrierResults() {
 
 		ArrayList<String> runs = new ArrayList<>();
 
-		for (int i = 0; i < MODELS_NUMBER; i++) {
+		for (int i = 0; i < MODELS; i++) {
 			String path = "terrier-core-4.2-" + i + "/var/results";
 			File[] files = new File(path).listFiles();
 
@@ -73,7 +87,7 @@ public class Utils {
 			}
 		}
 
-		ArrayList<ArrayList<ResultTopic>> result = new ArrayList<>();
+		pool = new ArrayList<>();
 
 		//carico in memoria le run
 		for (String FILENAME : runs) {
@@ -86,7 +100,7 @@ public class Utils {
 				String sCurrentLine;
 
 				ArrayList<ResultTopic> modelX = new ArrayList<>();
-				result.add(modelX);
+				pool.add(modelX);
 
 				for (int q : topics) {
 					modelX.add(new ResultTopic(q));
@@ -95,7 +109,7 @@ public class Utils {
 				while ((sCurrentLine = br.readLine()) != null) {
 					String[] parsedLine = sCurrentLine.split(" ");
 					int topicId = Integer.parseInt(parsedLine[0]);
-					modelX.get(topicId - 351).add(sCurrentLine);
+					modelX.get(topics.indexOf(topicId)).add(sCurrentLine);
 				}
 
 				for (ResultTopic topic : modelX) {
@@ -106,9 +120,52 @@ public class Utils {
 				e.printStackTrace();
 			}
 		}
-
-		return result;
 	}
+
+	//serializza i risultati delle run di probfuse
+	public static void getTerrierResults(String path) {
+
+		ArrayList<String> runs = new ArrayList<>();
+
+		getFile(RUN_PATH,runs);
+
+		pool = new ArrayList<>();
+
+		//carico in memoria le run
+		for (String FILENAME : runs) {
+
+			try {
+
+				FileReader fr = new FileReader(FILENAME);
+				BufferedReader br = new BufferedReader(fr);
+
+				String sCurrentLine;
+
+				ArrayList<ResultTopic> modelX = new ArrayList<>();
+				pool.add(modelX);
+
+				for (int q : topics) {
+					modelX.add(new ResultTopic(q));
+				}
+
+				while ((sCurrentLine = br.readLine()) != null) {
+					String[] parsedLine = sCurrentLine.replaceAll("\\s+", " ").trim().split(" ");
+					System.out.println(sCurrentLine);
+					int topicId = Integer.parseInt(parsedLine[0]);
+					modelX.get(topics.indexOf(topicId)).add(sCurrentLine);
+				}
+
+				for (ResultTopic topic : modelX) {
+					topic.normalize("base");
+				}
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+
 
 	//serializza la grand truth
 	public static void getGT(){
@@ -280,22 +337,35 @@ public class Utils {
 		}
 	}
 
-	public static ArrayList<Integer> getTopics(String file) {
-		ArrayList<Integer> topic = null;
+	public static void getFile(String directoryName, ArrayList<String> files) {
+		File directory = new File(directoryName);
+
+		// get all the files from a directory
+		File[] fList = directory.listFiles();
+		for (File file : fList) {
+			if (file.isFile()) {
+				files.add(file.getAbsolutePath());
+			} else if (file.isDirectory()) {
+				getFile(file.getAbsolutePath(), files);
+			}
+		}
+	}
+
+	public static void getTopics() {
+		topics = null;
 		try {
-			FileReader fr = new FileReader(file);
+			FileReader fr = new FileReader(TOPIC_FILE);
 			BufferedReader br = new BufferedReader(fr);
 			String sCurrentLine;
-			topic = new ArrayList<Integer>();
+			topics = new ArrayList<Integer>();
 			while ((sCurrentLine = br.readLine()) != null) {
 				if (sCurrentLine.contains("<num>")) {
-					topic.add(Integer.parseInt(sCurrentLine.split(":")[1].trim()));
+					topics.add(Integer.parseInt(sCurrentLine.split(":")[1].trim()));
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return topic;
 	}
 
 	public static class ResultTopic {
@@ -360,7 +430,7 @@ public class Utils {
 
 		//ritorna il topicID
 		public int set(String line) {
-			String[] parsedLine = line.split(" ");
+			String[] parsedLine = line.replaceAll("\\s+", " ").trim().split(" ");
 			topicId = Integer.parseInt(parsedLine[0]);
 			boh1 = parsedLine[1];
 			docName = parsedLine[2];
@@ -396,25 +466,25 @@ public class Utils {
 	}
 
 	public static class SingleResultLine extends ResultLine{
-		private double score;
+			private double score;
 
-		public SingleResultLine(){
-			super();
-			score = -1;
-		}
+			public SingleResultLine(){
+				super();
+				score = -1;
+			}
 
-		public void migrate(MultipleResultLine oldObject, double valueScore) {
-			super.clone(oldObject);
-			score=valueScore;
-		}
+			public void migrate(MultipleResultLine oldObject, double valueScore) {
+				super.clone(oldObject);
+				score=valueScore;
+			}
 
-		public double getScore() {
-			return score;
-		}
+			public double getScore() {
+				return score;
+			}
 
-		public void setScore(double value) {
-			score=value;
-		}
+			public void setScore(double value) {
+				score=value;
+			}
 
 		public String toString() {
 			return "" + super.topicId + " " + super.boh1 + " " + super.docName + " " + super.position + " " + score + " " + super.modelName;
@@ -436,7 +506,7 @@ public class Utils {
 		//ritorna il topicID
 		public int set(String line) {
 			super.set(line);
-			String[] parsedLine = line.split(" ");
+			String[] parsedLine = line.replaceAll("\\s+", " ").trim().split(" ");
 			score.put("base",Double.parseDouble(parsedLine[4]));
 			return super.getTopicId();
 		}
@@ -532,14 +602,6 @@ public class Utils {
 			listRF.add(RF);
 		}
 
-		public ArrayList<RankFusionIF> getAlgorithm() {
-			ArrayList<RankFusionIF> algorithm = new ArrayList<>();
-			for (RankFusion RF: listRF) {
-				algorithm.add(RF.algorithm);
-			}
-			return algorithm;
-		}
-
 		public void initializeAll() throws Exception{
 			for (Utils.RankFusion RF:listRF) {
 				RF.initialize();
@@ -570,12 +632,12 @@ public class Utils {
 
 		public void writeResult(){
 			for(RankFusion RF: listRF){
-				double mean = RF.somma / EXP_NUMBER;
+				double mean = RF.somma / EXPERIMENT;
 				double variance = 0;
 				for (Double value : RF.mapValues) {
 					variance = variance + Math.pow(value - mean, 2);
 				}
-				variance = variance / EXP_NUMBER;
+				variance = variance / EXPERIMENT;
 				RF.printMean(mean + ";");
 				RF.printVar(variance + ";");
 			}
