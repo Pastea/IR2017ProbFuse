@@ -2,26 +2,31 @@ package com.latuarisposta;
 
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static com.latuarisposta.Utils.*;
+import static java.lang.System.exit;
+import static javax.script.ScriptEngine.FILENAME;
 
 public class Main {
 
-	public static final int[] SEG={25};
-	public static final int[] TRAININGSIZE ={50};
-	public static final int EXPERIMENT = 20;
-	public static final int MODELS = 10;
-	public static final String COLLECTION_PATH = "linkCollection/";
-	public static final String TOPIC_FILE = "topics/topics.151-200_trec3.bin";
-	public static final String GT_FILE="qrels/qrels.151-200_trec3.bin";
-	public static final String RESULTFUSION_PATH ="trec_eval/";
-	public static final String CSV_PATH="";
-	public static final String RUN_PATH="runs_probfuse2006/TEST/";
-	public static final boolean TEST=true;
-
+	public static final String CONFIGURATION_PATH="properties";
+	public static int[] SEG;
+	public static int[] TRAININGSIZE;
+	public static int EXPERIMENT;
+	public static int MODELS;
+	public static String COLLECTION_PATH;
+	public static String TOPIC_FILE;
+	public static String GT_FILE;
+	public static String RESULTFUSION_PATH;
+	public static String CSV_PATH;
+	public static String RUN_PATH;
+	public static boolean TEST;
 
 	public static void main(String[] args) throws Exception {
+
+		loadConfiguration();
 
 		//scelgo i metodi da usare per la fusione delle run
 		Utils.ListRankFusion listRankFusion = new Utils.ListRankFusion();
@@ -94,5 +99,35 @@ public class Main {
 		}
 	}
 
-
+	private static void loadConfiguration(){
+		String s;
+		try {
+			FileReader fr = new FileReader(CONFIGURATION_PATH);
+			BufferedReader br = new BufferedReader(fr);
+			while((s=br.readLine())!=null) {
+				if(!s.startsWith("/*")){
+					String[] line =s.split("=");
+					line[1]=line[1].trim();
+					switch (line[0].trim())
+					{	case "SEG":	SEG=Arrays.stream(line[1].substring(1,line[1].length()-1).split(",")).map(String::trim).mapToInt(Integer::parseInt).toArray(); break;
+						case "TRAININGSIZE": TRAININGSIZE=Arrays.stream(line[1].substring(1,line[1].length()-1).split(",")).map(String::trim).mapToInt(Integer::parseInt).toArray(); break;
+						case "EXPERIMENT": EXPERIMENT=Integer.parseInt(line[1]); break;
+						case "MODELS": MODELS=Integer.parseInt(line[1]); break;
+						case "COLLECTION_PATH":	COLLECTION_PATH=line[1].substring(1,line[1].length()-1); break;
+						case "TOPIC_FILE":	TOPIC_FILE =line[1].substring(1,line[1].length()-1); break;
+						case "GT_FILE": GT_FILE=line[1].substring(1,line[1].length()-1); break;
+						case "RESULTFUSION_PATH" : RESULTFUSION_PATH =line[1].substring(1,line[1].length()-1); break;
+						case "CSV_PATH" : CSV_PATH=line[1].substring(1,line[1].length()-1); break;
+						case "RUN_PATH" : RUN_PATH=line[1].substring(1,line[1].length()-1); break;
+						case "TEST" : TEST=(line[1].equals("true")?true:false); break;
+						default: throw new Exception();
+					}
+				}
+				}
+		}
+		catch (Exception e){
+			System.out.println("Errore nella lettura della configurazione");
+			exit(0);
+		}
+	}
 }
