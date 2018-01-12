@@ -24,7 +24,6 @@ class CombMIN implements RankFusionIF {
 	public String scoreUsed = "base";
 	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
 		double[] scoreArray = toDoubleArray(results,scoreUsed);
-
 		double min = scoreArray[0];
 		return min;
 
@@ -55,11 +54,10 @@ class CombMED implements RankFusionIF {
 	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
 		double[] target = toDoubleArray(results,scoreUsed);
 		Arrays.sort(target);
-		int middle = target.length / 2;
 		if (target.length % 2 == 0) {
-			return (target[middle] + target[middle - 1]) / 2;
+			return (target[(target.length / 2)-1] + target[target.length / 2]) / 2;
 		} else {
-			return target[middle + 1];
+			return target[((target.length+1)/ 2)-1];
 		}
 	}
 }

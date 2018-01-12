@@ -1,9 +1,9 @@
 /*SEG: numero di segmenti per ogni run*/
 SEG={25}
 /*TRAININGSIZE: percentuale dei topic considerati per l'allenamento*/
-TRAININGSIZE={50}
+TRAININGSIZE={10,20}
 /*EXPERIMENT: numero di esperimenti ripetuti con gli stessi parametri*/
-EXPERIMENT=20
+EXPERIMENT=1
 /*MODELS: numero di modelli*/
 MODELS=10
 /*COLLECTION_PATH: percorso della collezione documenti*/
@@ -15,7 +15,7 @@ GT_FILE="qrels/qrels.151-200_trec3.bin"
 /*RESULTFUSION_PATH: percorso risultati di terrier*/
 RESULTFUSION_PATH="trec_eval/"
 /*CSV_PATH: percorso risultati*/
-CSV_PATH=""
+CSV_PATH="CSV/"
 /*RUN_PATH: percorso run prefatte*/
 RUN_PATH="runs_probfuse2006/TREC3/"
 /*TEST: true:uso le run prefatte, false:uso i miei sistemi*/

@@ -23,6 +23,7 @@
       <excludeFolder url="file://$MODULE_DIR$/terrier-core-4.2-9" />
       <excludeFolder url="file://$MODULE_DIR$/terrier-core-4.2/etc" />
       <excludeFolder url="file://$MODULE_DIR$/terrier-core-4.2/var" />
+      <excludeFolder url="file://$MODULE_DIR$/trec_eval" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

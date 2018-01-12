@@ -92,7 +92,7 @@ public class Main {
 				}
 				listRankFusion.printAll("\n");
 			}
-			Utils.executeCommand("python heatmap.py", false);
+			Utils.executeCommand("python " +CSV_PATH+"heatmap.py", false);
 		}
 		catch(IOException ioe)
 		{
