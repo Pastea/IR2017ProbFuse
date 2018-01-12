@@ -30,7 +30,12 @@ public class Main {
 
 		//scelgo i metodi da usare per la fusione delle run
 		Utils.ListRankFusion listRankFusion = new Utils.ListRankFusion();
+		listRankFusion.add(new Utils.RankFusion(new CombANZ()));
+		listRankFusion.add(new Utils.RankFusion(new CombMAX()));
+		listRankFusion.add(new Utils.RankFusion(new CombMED()));
+		listRankFusion.add(new Utils.RankFusion(new CombMIN()));
 		listRankFusion.add(new Utils.RankFusion(new CombMNZ()));
+		listRankFusion.add(new Utils.RankFusion(new CombSUM()));
 		listRankFusion.add(new Utils.RankFusion(new ProbFuseAll()));
 		listRankFusion.add(new Utils.RankFusion(new ProbFuseJudged()));
 
