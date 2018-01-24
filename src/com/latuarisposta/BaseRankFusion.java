@@ -7,10 +7,12 @@ import static com.latuarisposta.Utils.toDoubleArray;
 
 interface RankFusionIF {
 	//tipo di score utilizzato per fare il calcolo dello score finale, base si riferisce al punteggio dato da terrier
-	String scoreUsed="";
 	double computeScore(ArrayList<Utils.MultipleResultLine> results);
 }
 
+/**
+ * CombMAX fusion algorithm
+ */
 class CombMAX implements RankFusionIF {
 	public String scoreUsed = "base";
 	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
@@ -20,6 +22,9 @@ class CombMAX implements RankFusionIF {
 	}
 }
 
+/**
+ * CombMIN fusion alogrithm
+ */
 class CombMIN implements RankFusionIF {
 	public String scoreUsed = "base";
 	public double computeScore(ArrayList<Utils.MultipleResultLine> results) {
@@ -30,6 +35,9 @@ class CombMIN implements RankFusionIF {
 	}
 }
 
+/**
+ * CombSUM fusion algorithm
+ */
 class CombSUM implements RankFusionIF {
 	//the summation of the set of similarity values, or, equivalently, the numerical mean of the set of the set of similarity
 	public String scoreUsed = "base";
@@ -47,6 +55,9 @@ class CombSUM implements RankFusionIF {
 
 }
 
+/**
+ * CombMED fusion algorithm
+ */
 class CombMED implements RankFusionIF {
 	//the median similarity value
 	public String scoreUsed = "base";
@@ -62,6 +73,9 @@ class CombMED implements RankFusionIF {
 	}
 }
 
+/**
+ * CombANZ fusion algorithm
+ */
 class CombANZ implements RankFusionIF {
 	//average of the non-zero similarity values
 	public String scoreUsed = "base";
@@ -83,6 +97,9 @@ class CombANZ implements RankFusionIF {
 
 }
 
+/**
+ * CombMNZ fusion algorithm
+ */
 class CombMNZ implements RankFusionIF {
 	//average of the non-zero similarity values
 	public String scoreUsed = "base";
@@ -101,6 +118,9 @@ class CombMNZ implements RankFusionIF {
 	}
 }
 
+/**
+ * ProbFuseAll fusion algorithm
+ */
 class ProbFuseAll implements RankFusionIF {
 	public String scoreUsed = "ProbFuseAll";
 
@@ -116,6 +136,9 @@ class ProbFuseAll implements RankFusionIF {
 	}
 }
 
+/**
+ * ProbFuseJedged fusion algorithm
+ */
 class ProbFuseJudged implements RankFusionIF {
 	public String scoreUsed = "ProbFuseJudged";
 

@@ -1,17 +1,19 @@
 package com.latuarisposta;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static com.latuarisposta.Main.*;
 
 public class Utils {
 
-    public static ArrayList<ArrayList<Utils.ResultTopic>> pool;
+    public static ArrayList<ArrayList<Utils.ResultTopic>> run;
     public static ArrayList<Integer> topics;
     public static HashMap<String, Boolean> GT;
 
+    /**
+     * Setup the directory for the system creation
+     */
     public static void setupTerrierModels() {
         //creo i vari sistemi
         for (int i = 0; i < MODELS; i++) {
@@ -26,6 +28,9 @@ public class Utils {
 
     }
 
+    /**
+     * Execute terrier and parse the topics, GT and the results of the execution
+     */
     public static void executeTerrier() {
         if (!TEST) {
             setupTerrierModels();
@@ -56,10 +61,12 @@ public class Utils {
         //serializza la grand truth per i topic utilizzati
         getGT();
         //serializzo i risultati di terrier nel formato sistema-topic-documenti
-        Utils.getTerrierResults();
+        getTerrierResults();
     }
 
-    //serializza i risultati di terrier
+    /**
+     * Parse the results of terrier for the model or parse the run pre-made
+     */
     public static void getTerrierResults() {
         ArrayList<String> runs = new ArrayList<>();
         if (!TEST) {
@@ -77,7 +84,7 @@ public class Utils {
                 }
             }
 
-            pool = new ArrayList<>();
+            run = new ArrayList<>();
 
             //carico in memoria le run
             for (String FILENAME : runs) {
@@ -90,7 +97,7 @@ public class Utils {
                     String sCurrentLine;
 
                     ArrayList<ResultTopic> modelX = new ArrayList<>();
-                    pool.add(modelX);
+                    run.add(modelX);
 
                     for (int q : topics) {
                         modelX.add(new ResultTopic(q));
@@ -115,8 +122,8 @@ public class Utils {
             //trovo tutti i file relativi alle run dentro le cartelle e sottocartelle di RUN_PATH
             getFile(RUN_PATH, runs);
 
-            pool = new ArrayList<>();
-            int count=0;
+            run = new ArrayList<>();
+
             //carico in memoria le run
             for (String FILENAME : runs) {
 
@@ -128,7 +135,7 @@ public class Utils {
                     String sCurrentLine;
 
                     ArrayList<ResultTopic> modelX = new ArrayList<>();
-                    pool.add(modelX);
+                    run.add(modelX);
 
                     for (int q : topics) {
                         modelX.add(new ResultTopic(q));
@@ -139,8 +146,6 @@ public class Utils {
                         int topicId = Integer.parseInt(parsedLine[0]);
                         modelX.get(topics.indexOf(topicId)).add(sCurrentLine);
                     }
-
-                    System.out.println("leggo "+count++);
 
                     for (ResultTopic topic : modelX) {
                         topic.normalize("base");
@@ -153,8 +158,9 @@ public class Utils {
         }
     }
 
-
-    //serializza la grand truth
+    /**
+     * Parse the Grand Truth file and save it in the HashMap GT
+     */
     public static void getGT() {
         GT = new HashMap<>();
         try {
@@ -174,21 +180,26 @@ public class Utils {
         }
     }
 
-    public static void createFinalRank(ArrayList<ArrayList<ResultTopic>> pool, ArrayList<RankFusion> listRankFusion) {
+    /**
+     * Perform fusion algorithm and save the ranking ladder
+     * @param run  ArrayList of run for each model
+     * @param listRankFusion    list of the fusion data algorithms
+     */
+    public static void createFinalRank(ArrayList<ArrayList<ResultTopic>> run, ArrayList<RankFusion> listRankFusion) {
 
         for (int topic = 0; topic < Utils.topics.size(); topic++) {
             if (!ProbFuse.train_topics.contains(topics.get(topic))) {
                 //per ogni run si costruisce una hash map <DocID,List> di risultati
                 HashMap<String, ArrayList<MultipleResultLine>> docResult = new HashMap<>();
 
-                for (ArrayList<ResultTopic> model : pool) {
+                for (ArrayList<ResultTopic> model : run) {
                     //risultati (o linee) di quel topic
                     ArrayList<MultipleResultLine> documents = model.get(topic).getLines();
                     for (MultipleResultLine line : documents) {
-                        if (!docResult.containsKey(line.getDocName())) {
-                            docResult.put(line.getDocName(), new ArrayList<MultipleResultLine>());
+                        if (!docResult.containsKey(line.getDocId())) {
+                            docResult.put(line.getDocId(), new ArrayList<MultipleResultLine>());
                         }
-                        docResult.get(line.getDocName()).add(line);
+                        docResult.get(line.getDocId()).add(line);
                     }
                 }
 
@@ -218,6 +229,11 @@ public class Utils {
         }
     }
 
+    /**
+     * Evalutation of the data fusion with trec_eval
+     * @param listRankFusion    list of fusion algorithms used
+     * @return  trec_eval result
+     */
     public static HashMap<String, String> evaluateTerrier(ArrayList<RankFusion> listRankFusion) {
         HashMap<String, String> result_trec_eval = new HashMap<>();
         for (RankFusion rankFusion : listRankFusion) {
@@ -232,6 +248,9 @@ public class Utils {
         return result_trec_eval;
     }
 
+    /**
+     *
+     */
     static class CustomComparator implements Comparator<SingleResultLine> {
 
         public int compare(SingleResultLine o1, SingleResultLine o2) {
@@ -239,6 +258,12 @@ public class Utils {
         }
     }
 
+    /**
+     * Filter the results and create a array of double for the score specified
+     * @param results   arrayList of results
+     * @param scoreUsed score to insert in output
+     * @return  array of score
+     */
     static double[] toDoubleArray(ArrayList<MultipleResultLine> results, String scoreUsed) {
         double[] scoreArray = new double[results.size()];
         int count = 0;
@@ -250,9 +275,14 @@ public class Utils {
         return scoreArray;
     }
 
+    /**
+     * Execute a command in the terminal and in case returns the result
+     * @param command   command to be executed
+     * @param returnString  needed of the output result
+     * @return  result of the command execution
+     */
     public static String executeCommand(String command, boolean returnString) {
 
-        //StringBuffer output = new StringBuffer();
         StringBuilder s = new StringBuilder();
         String str;
         Process p;
@@ -280,7 +310,13 @@ public class Utils {
 
     }
 
-
+    /**
+     * Write a defined number of result to a file
+     *
+     * @param toWrite   data to be written
+     * @param path      where write data
+     * @param howMany   how many result write to file
+     */
     public static void writeToFile(ArrayList<SingleResultLine> toWrite, String path, int howMany) {
         try {
             int count = 0;
@@ -304,8 +340,8 @@ public class Utils {
     /**
      * Delete a file or a directory and its children.
      *
-     * @param file The directory to delete.
-     * @throws IOException Exception when problem occurs during deleting the directory.
+     * @param file the directory to delete.
+     * @throws IOException exception when problem occurs during deleting the directory.
      */
     public static void delete(File file) throws IOException {
 
@@ -325,13 +361,19 @@ public class Utils {
         }
     }
 
+    /**
+     * Retrieve and store the path of files in directory and in subdirectory of the given directory
+     *
+     * @param directoryName path of the given directory to analyze
+     * @param files container where store retrieved path files
+     */
     public static void getFile(String directoryName, ArrayList<String> files) {
         File directory = new File(directoryName);
 
         // estrae tutti i file da una directory
         File[] fList = directory.listFiles();
         for (File file : fList) {
-            if (file.isFile()) {
+            if (file.isFile() && !file.getName().startsWith(".")) {
                 files.add(file.getAbsolutePath());
             } else if (file.isDirectory()) {
                 getFile(file.getAbsolutePath(), files);
@@ -339,13 +381,16 @@ public class Utils {
         }
     }
 
+    /**
+     * Parse topic file and store topics identifier in @topics
+     */
     public static void getTopics() {
         topics = null;
         try {
             FileReader fr = new FileReader(TOPIC_FILE);
             BufferedReader br = new BufferedReader(fr);
             String sCurrentLine;
-            topics = new ArrayList<Integer>();
+            topics = new ArrayList<>();
             while ((sCurrentLine = br.readLine()) != null) {
                 if (sCurrentLine.contains("<num>")) {
                     topics.add(Integer.parseInt(sCurrentLine.split(":")[1].trim()));
@@ -356,6 +401,9 @@ public class Utils {
         }
     }
 
+    /**
+     * Start of class Section
+     */
     public static class ResultTopic {
         private int topicId;
         private ArrayList<MultipleResultLine> lines;
@@ -364,10 +412,6 @@ public class Utils {
         //e l'ultimo ResultLine avra' lo score piu' basso (sono ordinati)
         private double maxScore = -1;
         private double minScore = -1;
-
-        public ResultTopic() {
-            lines = new ArrayList<>();
-        }
 
         public ResultTopic(int Id) {
             lines = new ArrayList<>();
@@ -403,52 +447,52 @@ public class Utils {
 
     public static class ResultLine {
         private int topicId;
-        private String boh1;            //da sistemare
-        private String docName;
-        private int position;
-        private String modelName;
+        private String q0;            //da sistemare
+        private String docId;
+        private int rank;
+        private String runId;
 
         public ResultLine() {
             topicId = -1;
-            boh1 = "NULL";
-            docName = "NULL";
-            position = -1;
-            modelName = "NULL";
+            q0 = "NULL";
+            docId = "NULL";
+            rank = -1;
+            runId = "NULL";
         }
 
         //ritorna il topicID
         public int set(String line) {
             String[] parsedLine = line.replaceAll("\\s+", " ").trim().split(" ");
             topicId = Integer.parseInt(parsedLine[0]);
-            boh1 = parsedLine[1];
-            docName = parsedLine[2];
-            position = Integer.parseInt(parsedLine[3]);
-            modelName = parsedLine[5];
+            q0 = parsedLine[1];
+            docId = parsedLine[2];
+            rank = Integer.parseInt(parsedLine[3]);
+            runId = parsedLine[5];
             return topicId;
         }
 
         public void clone(ResultLine oldObject) {
             topicId = oldObject.getTopicId();
-            boh1 = oldObject.getBoh1();
-            docName = oldObject.getDocName();
-            position = -1;
-            modelName = oldObject.getModelName();
+            q0 = oldObject.getQ0();
+            docId = oldObject.getDocId();
+            rank = -1;
+            runId = oldObject.getRunId();
         }
 
         public int getTopicId() {
             return topicId;
         }
 
-        public String getBoh1() {
-            return boh1;
+        public String getQ0() {
+            return q0;
         }
 
-        public String getDocName() {
-            return docName;
+        public String getDocId() {
+            return docId;
         }
 
-        public String getModelName() {
-            return modelName;
+        public String getRunId() {
+            return runId;
         }
 
     }
@@ -475,11 +519,11 @@ public class Utils {
         }
 
         public String toString() {
-            return "" + super.topicId + " " + super.boh1 + " " + super.docName + " " + super.position + " " + score + " " + super.modelName;
+            return "" + super.topicId + " " + super.q0 + " " + super.docId + " " + super.rank + " " + score + " " + super.runId;
         }
 
         public String toString(int positionValue) {
-            return "" + super.topicId + " " + super.boh1 + " " + super.docName + " " + positionValue + " " + score + " " + super.modelName;
+            return "" + super.topicId + " " + super.q0 + " " + super.docId + " " + positionValue + " " + score + " " + super.runId;
         }
     }
 
@@ -532,19 +576,24 @@ public class Utils {
             algorithm = alg;
         }
 
-        public void initialize() throws Exception {
-            Utils.executeCommand("rm " + CSV_PATH + "resultsMean" + algorithm.getClass().getSimpleName() + ".csv", false);
-            fwMean = new FileWriter(CSV_PATH + "resultsMean" + algorithm.getClass().getSimpleName() + ".csv", false);
-            bwMean = new BufferedWriter(fwMean);
-            outMean = new PrintWriter(bwMean);
-            outMean.println("#segmenti");
-            outMean.print(";");
-            Utils.executeCommand("rm " + CSV_PATH + "resultsVariance" + algorithm.getClass().getSimpleName() + ".csv", false);
-            fwVariance = new FileWriter(CSV_PATH + "resultsVariance" + algorithm.getClass().getSimpleName() + ".csv", false);
-            bwVariance = new BufferedWriter(fwVariance);
-            outVariance = new PrintWriter(bwVariance);
-            outVariance.println("#segmenti");
-            outMean.print(";");
+        public void initialize() {
+            try {
+                Utils.executeCommand("rm " + CSV_PATH + "resultsMean" + algorithm.getClass().getSimpleName() + ".csv", false);
+                fwMean = new FileWriter(CSV_PATH + "resultsMean" + algorithm.getClass().getSimpleName() + ".csv", false);
+                bwMean = new BufferedWriter(fwMean);
+                outMean = new PrintWriter(bwMean);
+                outMean.println("#segmenti");
+                outMean.print(";");
+                Utils.executeCommand("rm " + CSV_PATH + "resultsVariance" + algorithm.getClass().getSimpleName() + ".csv", false);
+                fwVariance = new FileWriter(CSV_PATH + "resultsVariance" + algorithm.getClass().getSimpleName() + ".csv", false);
+                bwVariance = new BufferedWriter(fwVariance);
+                outVariance = new PrintWriter(bwVariance);
+                outVariance.println("#segmenti");
+                outMean.print(";");
+            }
+            catch (Exception e){
+                System.err.println("Controllare la configurazione delle directory, possibili directory mancanti");
+            }
         }
 
         public void printAll(String s) {

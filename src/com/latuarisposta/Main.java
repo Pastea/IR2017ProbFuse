@@ -7,11 +7,10 @@ import java.util.HashMap;
 
 import static com.latuarisposta.Utils.*;
 import static java.lang.System.exit;
-import static javax.script.ScriptEngine.FILENAME;
 
 public class Main {
 
-	public static final String CONFIGURATION_PATH="properties";
+	public static String CONFIGURATION_PATH="properties";
 	public static int[] SEG;
 	public static int[] TRAININGSIZE;
 	public static int EXPERIMENT;
@@ -44,7 +43,7 @@ public class Main {
 			//inizializzo tutte le variabili di ogni algoritmo di fusione (writer, etc)
 			listRankFusion.initializeAll();
 
-			//eseguo l'indexing e il retrieval una sola volta per avere i file .res e serializzo i topic, la GT e il pool
+			//eseguo l'indexing e il retrieval una sola volta per avere i file .res e serializzo i topic, la GT e il run
 			Utils.executeTerrier();
 
 			/*struttura file.csv
@@ -70,16 +69,16 @@ public class Main {
 					for (int i = 0; i < EXPERIMENT; i++) {
 
 						//calcolo i valori di probfuseAll e probfuseJudge per ogni segmento e poi li assegno ad ogni documento
-						ProbFuse probfuse = new ProbFuse(currentSegm, currentPercTraining,pool);
+						ProbFuse probfuse = new ProbFuse(currentSegm, currentPercTraining, run);
 
 						//controllo nel caso ci sia stato un bad training set e nel caso rifaccio tutto da zero
 						while (probfuse.isTrainingBad()) {
 							System.out.println("BAD TRAINING on topic "+probfuse.getBadTrainingTopic()+" and model "+probfuse.getBadTrainingModel());
-							probfuse = new ProbFuse(currentSegm, currentPercTraining,pool);
+							probfuse = new ProbFuse(currentSegm, currentPercTraining, run);
 						}
 
 						//fondo le rank dei sistemi per ogni algoritmo utilizzato e li salvo nei file res in trec_eval
-						Utils.createFinalRank(pool,listRankFusion.listRF);
+						Utils.createFinalRank(run,listRankFusion.listRF);
 
 						//valuto il sistema con trec_eval
 						HashMap<String, String> resultTrecEval = Utils.evaluateTerrier(listRankFusion.listRF);
@@ -104,6 +103,9 @@ public class Main {
 		}
 	}
 
+	/**
+	 * Load configuration of the project from properties file
+	 */
 	private static void loadConfiguration(){
 		String s;
 		try {

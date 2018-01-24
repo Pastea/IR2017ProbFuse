@@ -1,6 +1,5 @@
 package com.latuarisposta;
 import java.util.ArrayList;
-import static com.latuarisposta.Main.*;
 
 public class ProbFuse {
 
@@ -9,7 +8,7 @@ public class ProbFuse {
 	private int badTopic=-1;
 	private int badModel=-1;
 
-	public ProbFuse(int nSeg, int nTraining, ArrayList<ArrayList<Utils.ResultTopic>> pool) {
+	public ProbFuse(int nSeg, int nTraining, ArrayList<ArrayList<Utils.ResultTopic>> run) {
 
 		badTraining = false;
 		badTopic=-1;
@@ -30,18 +29,18 @@ public class ProbFuse {
 		}
 
 		//calcolo il punteggio per i vari segmenti di ogni sistema
-		ArrayList<ArrayList<Double>> ProbFuseAll = new ArrayList<ArrayList<Double>>();
-		ArrayList<ArrayList<Double>> ProbFuseJudged = new ArrayList<ArrayList<Double>>();
-		for (int s = 0; s < pool.size(); s++) {
-			ArrayList<Double> PFA_tmp = new ArrayList<Double>();  //probabilità di un sistema
-			ArrayList<Double> PFJ_tmp = new ArrayList<Double>();  //probabilità di un sistema
+		ArrayList<ArrayList<Double>> ProbFuseAll = new ArrayList<>();
+		ArrayList<ArrayList<Double>> ProbFuseJudged = new ArrayList<>();
+		for (int s = 0; s < run.size(); s++) {
+			ArrayList<Double> PFA_tmp = new ArrayList<>();  //probabilità di un sistema
+			ArrayList<Double> PFJ_tmp = new ArrayList<>();  //probabilità di un sistema
 			for (int n = 0; n < x; n++) {
 				double PFA_sum_rkq = 0;
 				double PFJ_sum_rkq= 0;
 				for (int i : train_topics) {
 					double Rkq = 0;
 					double Nkq = 0;
-					ArrayList<Utils.MultipleResultLine> documents = pool.get(s).get(Utils.topics.indexOf(i)).getLines();
+					ArrayList<Utils.MultipleResultLine> documents = run.get(s).get(Utils.topics.indexOf(i)).getLines();
 					int k = documents.size() / x;         	//prendo la parte bassa
 					int docRim = documents.size() - k * x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
 					int size;                           	//li ridistribuisco nei primi docRim segmenti
@@ -54,8 +53,8 @@ public class ProbFuse {
 						start = docRim * (k + 1) + (n - docRim) * k;
 					}
 					for (int d = start; d < start + size; d++) {
-						if (Utils.GT.containsKey(i + "/" + documents.get(d).getDocName())) {
-							if (Utils.GT.get(i + "/" + documents.get(d).getDocName())) {
+						if (Utils.GT.containsKey(i + "/" + documents.get(d).getDocId())) {
+							if (Utils.GT.get(i + "/" + documents.get(d).getDocId())) {
 								Rkq++;
 							}
 							else{
@@ -83,8 +82,8 @@ public class ProbFuse {
 		//calcolo i punteggi di ogni documento
 		for (int topic = 0; topic < Utils.topics.size(); topic++) {
 			if (!train_topics.contains(Utils.topics.get(topic))) {
-				for (int s = 0; s < pool.size(); s++) {
-					ArrayList<Utils.MultipleResultLine> documents = pool.get(s).get(topic).getLines();
+				for (int s = 0; s < run.size(); s++) {
+					ArrayList<Utils.MultipleResultLine> documents = run.get(s).get(topic).getLines();
 					for (int doc = 0; doc < documents.size(); doc++) {
 						Utils.MultipleResultLine rl = documents.get(doc);
 						int k = documents.size() / x;
@@ -106,7 +105,7 @@ public class ProbFuse {
 
 		//elimina topic di training e rileva se c'e' stato un cattivo training
 		int currentModel=0;
-		for (ArrayList<Utils.ResultTopic> model : pool) {
+		for (ArrayList<Utils.ResultTopic> model : run) {
 			currentModel++;
 			for (int i = model.size() - 1; i >= 0; i--) {
 				int topicId = model.get(i).getTopicID();
