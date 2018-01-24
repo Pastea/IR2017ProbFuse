@@ -116,7 +116,7 @@ public class Utils {
             getFile(RUN_PATH, runs);
 
             pool = new ArrayList<>();
-
+            int count=0;
             //carico in memoria le run
             for (String FILENAME : runs) {
 
@@ -136,10 +136,11 @@ public class Utils {
 
                     while ((sCurrentLine = br.readLine()) != null) {
                         String[] parsedLine = sCurrentLine.replaceAll("\\s+", " ").trim().split(" ");
-                        System.out.println(sCurrentLine);
                         int topicId = Integer.parseInt(parsedLine[0]);
                         modelX.get(topics.indexOf(topicId)).add(sCurrentLine);
                     }
+
+                    System.out.println("leggo "+count++);
 
                     for (ResultTopic topic : modelX) {
                         topic.normalize("base");
