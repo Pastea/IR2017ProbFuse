@@ -148,6 +148,7 @@ public class Utils {
                     }
 
                     for (ResultTopic topic : modelX) {
+                        topic.sort();
                         topic.normalize("base");
                     }
 
@@ -214,14 +215,15 @@ public class Utils {
 
                         //prende la prima linea relativa a quel documento per riempire i campi comuni e cambia lo score con quello del fusion ranking
                         documentFusionLine.migrate(document.getValue().get(0), score);
+                        documentFusionLine.setRunId(rankFusion.algorithm.getClass().getSimpleName());
                         fusionRank.add(documentFusionLine);
                     }
 
                     //ora ordino
-                    Collections.sort(fusionRank, new Utils.CustomComparator());
+                    Collections.sort(fusionRank, new CustomComparatorSingleResult());
 
 
-                    File FILENAMEFUSIONRANKING = new File("trec_eval/resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res"); //scelta arbitraria, non è relativo al sistema 0 ma è il risultato della fusione di tutti e 10 i sistem
+                    File FILENAMEFUSIONRANKING = new File("trec_eval/resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res");
 
                     Utils.writeToFile(fusionRank, FILENAMEFUSIONRANKING.getPath(), 1000);
                 }
@@ -237,10 +239,10 @@ public class Utils {
     public static HashMap<String, String> evaluateTerrier(ArrayList<RankFusion> listRankFusion) {
         HashMap<String, String> result_trec_eval = new HashMap<>();
         for (RankFusion rankFusion : listRankFusion) {
-            String trec_eval = Utils.executeCommand("trec_eval/trec_eval " + GT_FILE + " " + RESULTFUSION_PATH + "/resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res", true);
+            String trec_eval = Utils.executeCommand("trec_eval/trec_eval " + GT_FILE + " " + RESULTFUSION_PATH + "resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res", true);
             result_trec_eval.put(rankFusion.algorithm.getClass().getSimpleName(), trec_eval);
             try {
-                File file = new File(RESULTFUSION_PATH + "/resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res");
+                File file = new File(RESULTFUSION_PATH + "resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res");
                 file.delete();
             } catch (Exception e) {
             }
@@ -249,9 +251,9 @@ public class Utils {
     }
 
     /**
-     *
+     *  Comparator for sorting SingleResultLine ArrayList
      */
-    static class CustomComparator implements Comparator<SingleResultLine> {
+    static class CustomComparatorSingleResult implements Comparator<SingleResultLine> {
 
         public int compare(SingleResultLine o1, SingleResultLine o2) {
             return -Double.compare(o1.getScore(), o2.getScore());
@@ -259,9 +261,19 @@ public class Utils {
     }
 
     /**
+     * Comparator for sorting MultipleResult ArrayList
+     */
+    static class CustomComparatorMultipleResult implements Comparator<MultipleResultLine> {
+
+        public int compare(MultipleResultLine o1, MultipleResultLine o2) {
+            return -Double.compare(o1.getScore("base"), o2.getScore("base"));
+        }
+    }
+
+    /**
      * Filter the results and create a array of double for the score specified
      * @param results   arrayList of results
-     * @param scoreUsed score to insert in output
+     * @param scoreUsed score to evaluate
      * @return  array of score
      */
     static double[] toDoubleArray(ArrayList<MultipleResultLine> results, String scoreUsed) {
@@ -288,8 +300,8 @@ public class Utils {
         Process p;
         try {
             p = Runtime.getRuntime().exec(command);
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader er = new BufferedReader(new InputStreamReader(p.getErrorStream()));
             if (returnString) {
                 while ((str = br.readLine()) != null) {
                     s.append(str);
@@ -299,6 +311,9 @@ public class Utils {
             } else {
                 while ((str = br.readLine()) != null)
                     System.out.println("line: " + str);
+            }
+            while ((str = er.readLine()) != null) {
+                System.out.println("error: " + str);
             }
             p.waitFor();
             System.out.println("exit: " + p.exitValue());
@@ -402,7 +417,7 @@ public class Utils {
     }
 
     /**
-     * Start of class Section
+     * Start class Section
      */
     public static class ResultTopic {
         private int topicId;
@@ -422,16 +437,26 @@ public class Utils {
         public void add(String line) {
             MultipleResultLine currentLine = new MultipleResultLine();
             topicId = currentLine.set(line);
-            if (lines.size() == 0) {
-                maxScore = currentLine.getScore("base");
-            } else {
-                minScore = currentLine.getScore("base");
+            double score =currentLine.getScore("base");
+            if(lines.size()==0){
+                maxScore=score;
+                minScore=score;
+            }
+            if (score >maxScore) {
+                maxScore = score;
+            }
+            if(score <minScore){
+                minScore = score;
             }
             lines.add(currentLine);
         }
 
         public int getTopicID() {
             return topicId;
+        }
+
+        public void sort(){
+            Collections.sort(lines, new CustomComparatorMultipleResult());
         }
 
         public void normalize(String scoreName) {
@@ -494,6 +519,8 @@ public class Utils {
         public String getRunId() {
             return runId;
         }
+
+        public void setRunId(String s) {runId=s;}
 
     }
 

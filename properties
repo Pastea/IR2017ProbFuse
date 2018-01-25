@@ -1,9 +1,9 @@
-/*SEG: numero di segmenti per ogni run*/
+/*SEG: numero di segmenti per ogni run*/ SEG={2,4,6,8,10,15,20,25,30,40,50,100,150,200,250,300,400,500}
 SEG={2,4,6,8,10,15,20,25,30,40,50,100,150,200,250,300,400,500}
 /*TRAININGSIZE: percentuale dei topic considerati per l'allenamento*/
 TRAININGSIZE={10,20,30,40,50}
 /*EXPERIMENT: numero di esperimenti ripetuti con gli stessi parametri*/
-EXPERIMENT=5
+EXPERIMENT=1
 /*MODELS: numero di modelli*/
 MODELS=10
 /*COLLECTION_PATH: percorso della collezione documenti*/
@@ -17,6 +17,6 @@ RESULTFUSION_PATH="trec_eval/"
 /*CSV_PATH: percorso risultati*/
 CSV_PATH="csv/"
 /*RUN_PATH: percorso run prefatte*/
-RUN_PATH="runs_probfuse2006/TREC3/"
+RUN_PATH="runs_probfuse2006/TREC3_1/"
 /*TEST: true:uso le run prefatte, false:uso i miei sistemi*/
 TEST=true

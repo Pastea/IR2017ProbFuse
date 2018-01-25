@@ -34,7 +34,7 @@ public class ProbFuse {
 		for (int s = 0; s < run.size(); s++) {
 			ArrayList<Double> PFA_tmp = new ArrayList<>();  //probabilità di un sistema
 			ArrayList<Double> PFJ_tmp = new ArrayList<>();  //probabilità di un sistema
-			for (int n = 0; n < x; n++) {
+			for (int seg = 0; seg < x; seg++) {
 				double PFA_sum_rkq = 0;
 				double PFJ_sum_rkq= 0;
 				for (int i : train_topics) {
@@ -45,12 +45,12 @@ public class ProbFuse {
 					int docRim = documents.size() - k * x;  //sono il numero di documenti che resterebbero fuori prendendo solo k elementi per ogni segmento
 					int size;                           	//li ridistribuisco nei primi docRim segmenti
 					int start;
-					if (n < docRim) {
+					if (seg < docRim) {
 						size = k + 1;
-						start = n * (k + 1);
+						start = seg * (k + 1);
 					} else {
 						size = k;
-						start = docRim * (k + 1) + (n - docRim) * k;
+						start = docRim * (k + 1) + (seg - docRim) * k;
 					}
 					for (int d = start; d < start + size; d++) {
 						if (Utils.GT.containsKey(i + "/" + documents.get(d).getDocId())) {
@@ -89,12 +89,12 @@ public class ProbFuse {
 						int k = documents.size() / x;
 						int docRim = documents.size() - k * x;
 						int seg;
-						if (doc - docRim * (k + 1) < 0) {
+						if (doc < docRim * (k + 1)) {
 							seg = doc / (k + 1);
-							//System.out.println("documento:" + doc + " nel segmento " + seg + " di dimensione " + (k + 1) + " avendo un numero di documenti " + documents.size());
+							//System.out.println(doc+";"+seg+";"+(k + 1)+";"+documents.size()+";"+x);
 						} else {
 							seg = (doc - docRim * (k + 1)) / k + docRim;
-							//System.out.println("documento:" + doc + " nel segmento " + seg + " di dimensione " + k + " avendo un numero di documenti " + documents.size());
+							//System.out.println(doc+";"+seg+";"+k+";"+documents.size()+";"+x);
 						}
 						rl.setScore("ProbFuseAll",ProbFuseAll.get(s).get(seg) / (seg + 1));          //doc/(docSize/x) rappresenta il numero di segmento a cui appartiene il documento doc, il +1 nel secondo termine serve per farlo partire da 1 e non da 0
 						rl.setScore("ProbFuseJudged",ProbFuseJudged.get(s).get(seg) / (seg + 1));
@@ -103,7 +103,7 @@ public class ProbFuse {
 			}
 		}
 
-		//elimina topic di training e rileva se c'e' stato un cattivo training
+		//rileva se c'e' stato un cattivo training
 		int currentModel=0;
 		for (ArrayList<Utils.ResultTopic> model : run) {
 			currentModel++;
