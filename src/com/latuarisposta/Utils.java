@@ -62,6 +62,7 @@ public class Utils {
         getGT();
         //serializzo i risultati di terrier nel formato sistema-topic-documenti
         getTerrierResults();
+
     }
 
     /**
@@ -188,6 +189,16 @@ public class Utils {
      */
     public static void createFinalRank(ArrayList<ArrayList<ResultTopic>> run, ArrayList<RankFusion> listRankFusion) {
 
+        try {
+            for (RankFusion rankFusion : listRankFusion) {
+                File f = new File("trec_eval/resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res");
+                f.delete();
+            }
+        }
+        catch (Exception e) {
+        }
+
+
         for (int topic = 0; topic < Utils.topics.size(); topic++) {
             if (!ProbFuse.train_topics.contains(topics.get(topic))) {
                 //per ogni run si costruisce una hash map <DocID,List> di risultati
@@ -241,11 +252,6 @@ public class Utils {
         for (RankFusion rankFusion : listRankFusion) {
             String trec_eval = Utils.executeCommand("trec_eval/trec_eval " + GT_FILE + " " + RESULTFUSION_PATH + "resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res", true);
             result_trec_eval.put(rankFusion.algorithm.getClass().getSimpleName(), trec_eval);
-            try {
-                File file = new File(RESULTFUSION_PATH + "resultFusionRank" + rankFusion.algorithm.getClass().getSimpleName() + ".res");
-                file.delete();
-            } catch (Exception e) {
-            }
         }
         return result_trec_eval;
     }
