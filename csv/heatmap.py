@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 import os
 import sys
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 files = []
 for file in os.listdir('.'):
 	if file.endswith('.csv'):
