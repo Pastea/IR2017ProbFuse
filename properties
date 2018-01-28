@@ -1,4 +1,4 @@
-/*SEG: numero di segmenti per ogni run*/ SEG={2,4,6,8,10,15,20,25,30,40,50,100,150,200,250,300,400,500}
+/*SEG: numero di segmenti per ogni run*/
 SEG={2,4,6,8,10,15,20,25,30,40,50,100,150,200,250,300,400,500}
 /*TRAININGSIZE: percentuale dei topic considerati per l'allenamento*/
 TRAININGSIZE={10,20,30,40,50}
